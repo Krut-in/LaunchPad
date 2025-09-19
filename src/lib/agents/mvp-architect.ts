@@ -81,7 +81,7 @@ Design an MVP architecture for this business idea:
 
 Business Idea: {{businessIdea}}
 Target Audience: {{targetAudience}}
-Budget: ${{budget}} USD
+Budget: $\{{budget}} USD
 Timeline: {{timeline}}
 Technical Expertise: {{technicalExpertise}}
 
@@ -112,7 +112,7 @@ Please provide a comprehensive MVP architecture including:
    - Total estimated cost
 
 Consider the team's {{technicalExpertise}} expertise level when recommending technologies.
-Ensure recommendations fit within the ${{budget}} budget and {{timeline}} timeline.
+Ensure recommendations fit within the $\{{budget}} budget and {{timeline}} timeline.
 
 Format your response as valid JSON.
     `, input)

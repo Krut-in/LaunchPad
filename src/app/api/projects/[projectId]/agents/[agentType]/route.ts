@@ -7,10 +7,10 @@ import { AgentType, AgentError } from '@/types'
 import { createApiResponse, getErrorMessage } from '@/lib/utils'
 
 interface RouteContext {
-  params: {
+  params: Promise<{
     projectId: string
     agentType: string
-  }
+  }>
 }
 
 export async function POST(request: NextRequest, { params }: RouteContext) {
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       )
     }
 
-    const { projectId, agentType } = params
+    const { projectId, agentType } = await params
     
     // Validate agent type
     if (!Object.values(AgentType).includes(agentType as AgentType)) {
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       throw error
     }
   } catch (error) {
-    console.error(`Error running agent ${params.agentType}:`, error)
+    console.error(`Error running agent:`, error)
     
     if (error instanceof AgentError) {
       return NextResponse.json(
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       )
     }
 
-    const { projectId, agentType } = params
+    const { projectId, agentType } = await params
     
     // Validate agent type
     if (!Object.values(AgentType).includes(agentType as AgentType)) {
@@ -142,7 +142,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       createApiResponse(true, analysisResults, 'Analysis results retrieved successfully')
     )
   } catch (error) {
-    console.error(`Error getting agent results ${params.agentType}:`, error)
+    console.error(`Error getting agent results:`, error)
     
     return NextResponse.json(
       createApiResponse(false, null, null, getErrorMessage(error)),

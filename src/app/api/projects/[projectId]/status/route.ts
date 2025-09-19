@@ -6,9 +6,9 @@ import { agentOrchestrator } from '@/lib/agents'
 import { createApiResponse, getErrorMessage } from '@/lib/utils'
 
 interface RouteContext {
-  params: {
+  params: Promise<{
     projectId: string
-  }
+  }>
 }
 
 export async function GET(request: NextRequest, { params }: RouteContext) {
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       )
     }
 
-    const { projectId } = params
+    const { projectId } = await params
     
     // Check if project exists and belongs to user
     const [project] = await projectQueries.findById(projectId)

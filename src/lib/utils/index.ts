@@ -104,15 +104,15 @@ export function getErrorMessage(error: unknown): string {
 
 export function createApiResponse<T>(
   success: boolean,
-  data?: T,
-  message?: string,
-  error?: string
+  data?: T | null,
+  message?: string | null,
+  error?: string | null
 ) {
   return {
     success,
-    data,
-    message,
-    error,
+    data: data || undefined,
+    message: message || undefined,
+    error: error || undefined,
   }
 }
 

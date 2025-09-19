@@ -7,14 +7,13 @@ import { projectQueries, analysisResultQueries } from '@/lib/database/queries'
 import { nanoid } from 'nanoid'
 
 export class AgentOrchestrator {
-  private agents: Map<AgentType, BaseAgent>
+  private agents: Map<AgentType, BaseAgent<any, any>>
 
   constructor() {
-    this.agents = new Map([
-      [AgentType.MARKET_MAPPER, new MarketMapperAgent()],
-      [AgentType.MVP_ARCHITECT, new MVPArchitectAgent()],
-      [AgentType.COMPETITOR_GPT, new CompetitorGPTAgent()],
-    ])
+    this.agents = new Map()
+    this.agents.set(AgentType.MARKET_MAPPER, new MarketMapperAgent())
+    this.agents.set(AgentType.MVP_ARCHITECT, new MVPArchitectAgent())
+    this.agents.set(AgentType.COMPETITOR_GPT, new CompetitorGPTAgent())
   }
 
   /**
