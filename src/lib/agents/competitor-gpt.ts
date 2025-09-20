@@ -79,8 +79,8 @@ export class CompetitorGPTAgent extends BaseAgent<CompetitorGPTInput, Competitor
 Analyze the competitive landscape for this business idea:
 
 Business Idea: {{businessIdea}}
-Industry: {{industry}}
-Target Market: {{targetMarket}}
+Indu: {{targetstry: {{industry}}
+Target MarketMarket}}
 
 Please provide a comprehensive competitive analysis including:
 
