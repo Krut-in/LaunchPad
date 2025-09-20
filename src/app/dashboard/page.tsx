@@ -89,7 +89,8 @@ export default function DashboardPage() {
                   Market Mapper
                 </CardTitle>
                 <CardDescription>
-                  Intelligent market analysis with dynamic questioning and comprehensive insights
+                  Intelligent market analysis with dynamic questioning and
+                  comprehensive insights
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -109,7 +110,9 @@ export default function DashboardPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" variant="outline">Create Project</Button>
+              <Button className="w-full" variant="outline">
+                Create Project
+              </Button>
             </CardContent>
           </Card>
 
