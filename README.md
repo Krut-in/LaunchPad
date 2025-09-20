@@ -53,7 +53,7 @@ We built LaunchPad to compress the validation cycle from weeks to hours. You pro
 - Tailwind CSS with shadcn/ui components
 - SQLite with Drizzle ORM (schema, queries, migrations)
 - NextAuth.js with Google OAuth 2.0
-- OpenAI GPT-4o integration (OpenAI SDK)
+- OpenAI GPT-5 integration (OpenAI SDK)
 - Extensible, plugin-like agent architecture with a central orchestrator
 
 ### Getting started
