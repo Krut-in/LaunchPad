@@ -1,279 +1,133 @@
-# LaunchPad 🚀
+## LaunchPad
 
-A comprehensive multi-agent startup validation platform built with Next.js 15, powered by Claude AI agents for market research, MVP architecture, and competitive analysis.
+LaunchPad is an AI co-pilot for validating startup ideas. It turns a rough concept into clear market insights, a practical MVP plan, and a competitive playbook. Describe your idea; specialized agents do the heavy lifting. Concise reports help you decide what to build, why, and how—quickly and confidently every time.
 
-## ✨ Features
+### The challenge we tackled
 
-### 🤖 Multi-Agent System
-- **Market Mapper**: Comprehensive market analysis with TAM/SAM/SOM calculations, trend identification, and opportunity assessment
-- **MVP Architect**: Technical architecture planning with feature prioritization, tech stack recommendations, and development roadmaps
-- **Competitor GPT**: Competitive landscape analysis with strategic positioning recommendations
+Most early founders get stuck between inspiration and execution. Market reports are expensive, competitor research is time-consuming, and turning an idea into a realistic MVP plan often requires multiple experts. Current approaches are scattered across endless tabs, generic templates, and guesswork—slow, overwhelming, and prone to bias. LaunchPad unifies this journey into a single, guided experience that produces practical, decision-ready outputs.
 
-### 🏗️ Architecture
-- **Next.js 15** with App Router and React 19
-- **TypeScript** with strict mode
-- **Tailwind CSS** + shadcn/ui components
-- **SQLite** with Drizzle ORM
-- **NextAuth.js** with Google OAuth 2.0
-- **Claude API** integration
-- Extensible plugin-like architecture for easy agent additions
+### What LaunchPad does
 
-### 🗄️ Database Schema
-- Users with subscription management
-- Projects with multi-agent workflow tracking
-- Agent sessions with conversation history
-- Analysis results with versioning
+We built LaunchPad to compress the validation cycle from weeks to hours. You provide a simple description of your idea; our orchestrated AI agents independently analyze the market, map the competition, and design a feasible MVP roadmap. Each agent produces structured, verifiable outputs that feed back into your project, so you can refine fast and move with confidence.
 
-## 🚀 Quick Start
+### Core features
 
-### Prerequisites
-- Node.js 18+ 
-- npm or yarn
-- Google OAuth 2.0 credentials
+#### Market Mapper
+
+- Estimates TAM/SAM/SOM with plain-language reasoning
+- Surfaces current trends with impact and timeframes
+- Highlights opportunities and risks with clear trade-offs
+- Produces structured, copyable outputs for easy sharing
+
+#### Competitor GPT
+
+- Maps direct and indirect competitors with positioning
+- Summarizes strengths, weaknesses, funding, and market share
+- Identifies differentiation angles you can actually sustain
+- Suggests strategic moves prioritized by impact and effort
+
+#### MVP Architect
+
+- Translates your idea into a scoped, buildable feature set
+- Recommends tech stack options matched to constraints
+- Outlines a realistic timeline across phases and milestones
+- Provides a transparent budget estimate and resourcing plan
+
+#### Projects & Dashboard
+
+- Create projects to track analyses in one place
+- Versioned analysis results you can revisit and compare
+- Session history for transparency and reproducibility
+- Clear status of what ran, what’s next, and what’s pending
+
+#### Authentication & Credits
+
+- Sign in with Google securely
+- Fair-use credit system to manage AI workloads
+- Designed to scale from side projects to serious teams
+
+### Technical foundation
+
+- Next.js 15 (App Router) and React 19
+- TypeScript (strict mode) and Zod validation end-to-end
+- Tailwind CSS with shadcn/ui components
+- SQLite with Drizzle ORM (schema, queries, migrations)
+- NextAuth.js with Google OAuth 2.0
+- Claude API integration (Anthropic SDK)
+- Extensible, plugin-like agent architecture with a central orchestrator
+
+### Getting started
+
+Prerequisites
+
+- Node.js 18+
+- Google OAuth credentials (Client ID and Secret)
 - Claude API key
 
-### Installation
+1. Clone and install
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd LaunchPad
-   ```
+```bash
+git clone <your-repo-url>
+cd LaunchPad
+npm install
+```
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+2. Configure environment
 
-3. **Set up environment variables**
-   ```bash
-   cp env.example .env.local
-   ```
-   
-   Fill in your environment variables:
-   ```env
-   NEXTAUTH_SECRET=your_nextauth_secret_here
-   NEXTAUTH_URL=http://localhost:3000
-   GOOGLE_CLIENT_ID=your_google_client_id_here
-   GOOGLE_CLIENT_SECRET=your_google_client_secret_here
-   CLAUDE_API_KEY=your_claude_api_key_here
-   DATABASE_URL=file:./dev.db
-   NEXT_PUBLIC_APP_URL=http://localhost:3000
-   ```
+```bash
+cp env.example .env.local
+```
 
-4. **Generate and run database migrations**
-   ```bash
-   npm run db:generate
-   npm run db:migrate
-   ```
+Fill in these variables in `.env.local`:
 
-5. **Start the development server**
-   ```bash
-   npm run dev
-   ```
+```
+NEXTAUTH_SECRET=your_nextauth_secret_here
+NEXTAUTH_URL=http://localhost:3000
+GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+CLAUDE_API_KEY=your_claude_api_key_here
+DATABASE_URL=file:./dev.db
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
 
-6. **Open your browser**
-   Navigate to [http://localhost:3000](http://localhost:3000)
+3. Generate and run migrations
 
-## 📁 Project Structure
+```bash
+npm run db:generate
+npm run db:migrate
+```
+
+4. Run the app
+
+```bash
+npm run dev
+```
+
+Open `http://localhost:3000`.
+
+5. Production build (optional)
+
+```bash
+npm run build
+npm start
+```
+
+### Project structure (high level)
 
 ```
 src/
-├── app/                     # Next.js 15 App Router
-│   ├── api/                 # API routes
-│   ├── auth/                # Authentication pages
-│   └── (dashboard)/         # Protected dashboard routes
-├── components/
-│   ├── ui/                  # shadcn/ui components
-│   ├── agents/              # Agent-specific components
-│   └── shared/              # Reusable components
-├── lib/
-│   ├── agents/              # Agent logic & orchestration
-│   ├── database/            # Schema, connections, queries
-│   ├── auth/                # NextAuth configuration
-│   └── utils/               # Shared utilities
-├── types/                   # TypeScript type definitions
-└── hooks/                   # Custom React hooks
+  app/            # App Router, API routes, pages
+  components/     # ui/, agents/, shared/
+  lib/            # agents/, database/, auth/, utils/
+  types/          # TypeScript types and enums
+  hooks/          # Custom React hooks
 ```
 
-## 🤖 Agent System
+### Extending LaunchPad (adding an agent)
 
-### Base Agent Architecture
-All agents extend the `BaseAgent` class which provides:
-- Input/output validation with Zod schemas
-- Claude API integration
-- Session management
-- Error handling
-- Conversation logging
+- Implement a class extending the BaseAgent (define input/output Zod schemas)
+- Add your system prompt and `processInput` implementation
+- Register the agent in the orchestrator
+- (Optional) Add a small form and results component under `components/agents`
 
-### Adding New Agents
-1. Create a new agent class extending `BaseAgent`
-2. Define input/output schemas
-3. Implement the `processInput` method
-4. Register the agent in the orchestrator
-5. Create UI components for the agent
-
-### Example Agent Implementation
-```typescript
-export class CustomAgent extends BaseAgent<CustomInput, CustomOutput> {
-  constructor() {
-    super({
-      type: AgentType.CUSTOM,
-      name: 'Custom Agent',
-      description: 'Custom analysis agent',
-      systemPrompt: 'Your system prompt here',
-      maxTokens: 4000,
-      temperature: 0.3,
-      inputSchema: CustomInputSchema,
-      outputSchema: CustomOutputSchema,
-    })
-  }
-
-  async processInput(input: CustomInput): Promise<CustomOutput> {
-    // Your agent logic here
-  }
-}
-```
-
-## 🗄️ Database
-
-### Schema Overview
-- **users**: User accounts with subscription and credits
-- **projects**: User projects with workflow state
-- **agent_sessions**: Individual agent execution sessions
-- **conversations**: Chat history for each session
-- **analysis_results**: Structured analysis outputs with versioning
-
-### Database Commands
-```bash
-# Generate migrations
-npm run db:generate
-
-# Run migrations
-npm run db:migrate
-
-# Open Drizzle Studio
-npm run db:studio
-```
-
-## 🔐 Authentication
-
-Uses NextAuth.js with Google OAuth 2.0:
-- Automatic user creation on first sign-in
-- Session management with JWT
-- Credit system for API usage
-- Subscription tiers (free, pro, enterprise)
-
-## 🎨 UI Components
-
-Built with shadcn/ui components:
-- Consistent design system
-- Dark mode support
-- Responsive design
-- Accessible components
-
-## 📡 API Routes
-
-### Projects
-- `GET /api/projects` - List user projects
-- `POST /api/projects` - Create new project
-
-### Agents
-- `POST /api/projects/[id]/agents/[type]` - Run agent analysis
-- `GET /api/projects/[id]/agents/[type]` - Get analysis results
-
-### Status
-- `GET /api/projects/[id]/status` - Get project status and agent progress
-
-## 🚀 Deployment
-
-### Environment Setup
-1. Set production environment variables
-2. Configure database for production
-3. Set up Google OAuth for production domain
-
-### Vercel Deployment
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel --prod
-```
-
-### Database Migration in Production
-```bash
-# Run migrations in production
-npm run db:migrate
-```
-
-## 🧪 Development
-
-### Code Quality
-- ESLint configuration
-- TypeScript strict mode
-- Zod validation throughout
-- Error boundaries
-
-### Database Development
-```bash
-# Reset database
-rm dev.db
-npm run db:generate
-npm run db:migrate
-```
-
-### Adding Dependencies
-```bash
-# Add new dependency
-npm install package-name
-
-# Add dev dependency
-npm install -D package-name
-```
-
-## 📊 Monitoring & Analytics
-
-### Error Tracking
-- Structured error logging
-- Agent-specific error types
-- Session tracking
-
-### Usage Analytics
-- Credit usage tracking
-- Agent performance metrics
-- User engagement analytics
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-### Development Guidelines
-- Follow TypeScript best practices
-- Use Zod for all data validation
-- Implement proper error handling
-- Add JSDoc comments for complex functions
-- Follow the existing code style
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgments
-
-- [Next.js](https://nextjs.org/) for the amazing framework
-- [Anthropic](https://www.anthropic.com/) for Claude AI
-- [shadcn/ui](https://ui.shadcn.com/) for beautiful components
-- [Drizzle ORM](https://orm.drizzle.team/) for type-safe database operations
-
-## 📞 Support
-
-For support, email support@launchpad.dev or join our Discord community.
-
----
-
-Built with ❤️ using Next.js 15 and Claude AI
+Clear boundaries between agent logic, orchestration, database, and UI keep changes contained and safe to evolve over time.
