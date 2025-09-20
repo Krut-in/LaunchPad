@@ -53,7 +53,7 @@ We built LaunchPad to compress the validation cycle from weeks to hours. You pro
 - Tailwind CSS with shadcn/ui components
 - SQLite with Drizzle ORM (schema, queries, migrations)
 - NextAuth.js with Google OAuth 2.0
-- Claude API integration (Anthropic SDK)
+- OpenAI GPT-4 integration (OpenAI SDK)
 - Extensible, plugin-like agent architecture with a central orchestrator
 
 ### Getting started
@@ -62,7 +62,7 @@ Prerequisites
 
 - Node.js 18+
 - Google OAuth credentials (Client ID and Secret)
-- Claude API key
+- OpenAI API key
 
 1. Clone and install
 
@@ -85,7 +85,7 @@ NEXTAUTH_SECRET=your_nextauth_secret_here
 NEXTAUTH_URL=http://localhost:3000
 GOOGLE_CLIENT_ID=your_google_client_id_here
 GOOGLE_CLIENT_SECRET=your_google_client_secret_here
-CLAUDE_API_KEY=your_claude_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
 DATABASE_URL=file:./dev.db
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```

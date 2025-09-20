@@ -114,7 +114,7 @@ Focus on real companies and current market conditions. Provide actionable insigh
 Format your response as valid JSON.
     `, input)
 
-    const response = await this.callClaude([
+    const response = await this.callOpenAI([
       { role: 'user', content: prompt }
     ])
 

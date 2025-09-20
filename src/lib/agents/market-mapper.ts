@@ -142,7 +142,7 @@ Based on the business idea and existing answers, generate 2-5 targeted questions
 Return a JSON object with a "questions" array containing question objects with id, question, type, and required fields.
     `
 
-    const response = await this.callClaude([
+    const response = await this.callOpenAI([
       { role: 'user', content: prompt }
     ], QUESTION_GENERATION_PROMPT)
 
@@ -175,7 +175,7 @@ Based on this information, provide a comprehensive market analysis including:
 Ensure all insights are actionable and based on realistic market conditions. Format as valid JSON matching the schema.
     `
 
-    const response = await this.callClaude([
+    const response = await this.callOpenAI([
       { role: 'user', content: prompt }
     ], MARKET_ANALYSIS_PROMPT)
 

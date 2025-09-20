@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { MarketMapperInput } from '@/types'
+import { MarketMapperInput } from '@/lib/agents/market-mapper'
 
 const MarketMapperFormSchema = z.object({
   industry: z.string().min(1, 'Industry is required'),
@@ -38,6 +38,16 @@ export function MarketMapperForm({
     defaultValues: initialData,
   })
 
+  const handleFormSubmit = (formData: MarketMapperFormData) => {
+    const marketMapperInput: MarketMapperInput = {
+      businessIdea: formData.businessIdea,
+      industry: formData.industry || undefined,
+      targetMarket: formData.targetMarket || undefined,
+      analysisMode: 'questions' as const,
+    }
+    onSubmit(marketMapperInput)
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -47,7 +57,7 @@ export function MarketMapperForm({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
           <div>
             <label htmlFor="industry" className="block text-sm font-medium mb-2">
               Industry

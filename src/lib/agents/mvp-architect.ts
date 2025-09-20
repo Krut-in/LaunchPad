@@ -117,7 +117,7 @@ Ensure recommendations fit within the $\{{budget}} budget and {{timeline}} timel
 Format your response as valid JSON.
     `, input)
 
-    const response = await this.callClaude([
+    const response = await this.callOpenAI([
       { role: 'user', content: prompt }
     ])
 

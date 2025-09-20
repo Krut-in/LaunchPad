@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { Anthropic } from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 import { AgentType, AgentError } from '@/types'
 import { agentSessionQueries, conversationQueries } from '@/lib/database/queries'
 import { nanoid } from 'nanoid'
@@ -16,48 +16,76 @@ export interface AgentConfig {
 }
 
 export abstract class BaseAgent<TInput = any, TOutput = any> {
-  protected anthropic: Anthropic
+  protected openai: OpenAI | null = null
   protected config: AgentConfig
 
   constructor(config: AgentConfig) {
     this.config = config
-    this.anthropic = new Anthropic({
-      apiKey: process.env.CLAUDE_API_KEY!,
-    })
+  }
+
+  private getOpenAI(): OpenAI {
+    if (!this.openai) {
+      if (!process.env.OPENAI_API_KEY) {
+        throw new AgentError(
+          'OpenAI API key is required. Please set OPENAI_API_KEY environment variable.',
+          this.config.type,
+          'CONFIGURATION_ERROR'
+        )
+      }
+      this.openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY!,
+      })
+    }
+    return this.openai
   }
 
   abstract processInput(input: TInput): Promise<TOutput>
 
-  protected async callClaude(
-    messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+  protected async callOpenAI(
+    messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
     systemPrompt?: string
   ): Promise<string> {
     try {
-      const response = await this.anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: this.config.maxTokens,
-        temperature: this.config.temperature,
-        system: systemPrompt || this.config.systemPrompt,
-        messages,
-      })
-
-      const content = response.content[0]
-      if (content.type === 'text') {
-        return content.text
+      // Prepare messages with system prompt
+      const openaiMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = []
+      
+      if (systemPrompt || this.config.systemPrompt) {
+        openaiMessages.push({
+          role: 'system',
+          content: systemPrompt || this.config.systemPrompt
+        })
       }
       
-      throw new AgentError(
-        'Unexpected response format from Claude',
-        this.config.type,
-        'INVALID_RESPONSE'
-      )
+      // Add conversation messages
+      openaiMessages.push(...messages.map(msg => ({
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content
+      })))
+
+      const response = await this.getOpenAI().chat.completions.create({
+        model: 'gpt-4-turbo-preview',
+        max_tokens: this.config.maxTokens,
+        temperature: this.config.temperature,
+        messages: openaiMessages,
+      })
+
+      const content = response.choices[0]?.message?.content
+      if (!content) {
+        throw new AgentError(
+          'No content received from OpenAI',
+          this.config.type,
+          'INVALID_RESPONSE'
+        )
+      }
+      
+      return content
     } catch (error) {
       if (error instanceof AgentError) {
         throw error
       }
       
       throw new AgentError(
-        `Failed to call Claude API: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to call OpenAI API: ${error instanceof Error ? error.message : 'Unknown error'}`,
         this.config.type,
         'API_ERROR',
         error
@@ -159,7 +187,7 @@ export abstract class BaseAgent<TInput = any, TOutput = any> {
     }
   }
 
-  // Utility method for parsing JSON responses from Claude
+  // Utility method for parsing JSON responses from OpenAI
   protected parseJsonResponse<T>(response: string): T {
     try {
       // Try to extract JSON from markdown code blocks
