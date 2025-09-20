@@ -199,7 +199,7 @@ export default function HomePage() {
             <span className="text-lg font-semibold">LaunchPad</span>
           </div>
           <p className="text-gray-400">
-            © 2024 LaunchPad. All rights reserved. Built with Next.js 15 & OpenAI GPT-4.
+            © 2024 LaunchPad. All rights reserved. Built with Next.js 15 & OpenAI GPT-4o.
           </p>
         </div>
       </footer>

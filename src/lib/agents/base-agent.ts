@@ -63,7 +63,7 @@ export abstract class BaseAgent<TInput = any, TOutput = any> {
       })))
 
       const response = await this.getOpenAI().chat.completions.create({
-        model: 'gpt-4-turbo-preview',
+        model: 'gpt-4o',
         max_tokens: this.config.maxTokens,
         temperature: this.config.temperature,
         messages: openaiMessages,
