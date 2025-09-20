@@ -11,7 +11,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Brain, LogOut, Plus } from "lucide-react";
+import { Brain, LogOut, Plus, TrendingUp } from "lucide-react";
+import Link from "next/link";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -79,7 +80,24 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <Link href="/market-mapper">
+            <Card className="cursor-pointer hover:shadow-md transition-shadow h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <TrendingUp className="h-5 w-5 mr-2 text-blue-600" />
+                  Market Mapper
+                </CardTitle>
+                <CardDescription>
+                  Intelligent market analysis with dynamic questioning and comprehensive insights
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button className="w-full">Start Market Analysis</Button>
+              </CardContent>
+            </Card>
+          </Link>
+
           <Card className="cursor-pointer hover:shadow-md transition-shadow">
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -91,7 +109,7 @@ export default function DashboardPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full">Create Project</Button>
+              <Button className="w-full" variant="outline">Create Project</Button>
             </CardContent>
           </Card>
 

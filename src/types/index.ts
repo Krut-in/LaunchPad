@@ -69,14 +69,14 @@ export const AnalysisResultSchema = z.object({
 
 export type AnalysisResult = z.infer<typeof AnalysisResultSchema>
 
-// Agent Input/Output Types
-export interface MarketMapperInput {
+// Legacy Agent Input/Output Types (keeping for backward compatibility)
+export interface LegacyMarketMapperInput {
   industry: string
   targetMarket: string
   businessIdea: string
 }
 
-export interface MarketMapperOutput {
+export interface LegacyMarketMapperOutput {
   marketSize: {
     tam: number
     sam: number
