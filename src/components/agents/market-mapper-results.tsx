@@ -29,33 +29,49 @@ interface MarketMapperResultsProps {
 }
 
 export function MarketMapperResults({
-  results,
+  results: rawResults,
   onEdit,
   onRegenerate,
 }: MarketMapperResultsProps) {
-  // Normalize potential snake_case keys coming from API
+  // Normalize potential snake_case and UPPERCASE keys coming from API
   const normalizeResults = (raw: any) => {
-    if (!raw || typeof raw !== 'object') return raw
-    const norm: any = {}
-    norm.executiveSummary = raw.executiveSummary || raw.executive_summary || raw.summary || ''
-    const ta = raw.targetAudience || raw.target_audience || []
+    if (!raw || typeof raw !== "object") return raw;
+    const norm: any = {};
+    
+    // Executive Summary - handle UPPERCASE keys
+    norm.executiveSummary =
+      raw.executiveSummary || 
+      raw.executive_summary || 
+      raw.EXECUTIVE_SUMMARY || 
+      raw.summary || 
+      "";
+    
+    // Target Audience - handle UPPERCASE and different field names
+    const ta = raw.targetAudience || raw.target_audience || raw.TARGET_AUDIENCE || [];
     norm.targetAudience = Array.isArray(ta)
       ? ta.map((s: any) => ({
-          segment: s.segment || s.name || '',
+          segment: s.segment || s.segment_name || s.name || "",
           pain_points: s.pain_points || s.painPoints || [],
           size: s.size,
-          characteristics: s.characteristics || [],
+          characteristics: Array.isArray(s.characteristics) 
+            ? s.characteristics 
+            : (s.characteristics ? [s.characteristics] : []),
         }))
-      : []
-    const mo = raw.marketOpportunity || raw.market_opportunity
+      : [];
+    
+    // Market Opportunity - handle UPPERCASE and nested structure
+    const mo = raw.marketOpportunity || raw.market_opportunity || raw.MARKET_OPPORTUNITY;
     norm.marketOpportunity = mo
       ? {
-          size: mo.size || mo.market_size || '',
-          growth: mo.growth || mo.growth_rate || '',
-          trends: mo.trends || [],
+          size: mo.size || mo.market_size || 
+            (mo.estimates ? `TAM: ${mo.estimates.TAM_total_students_US?.toLocaleString?.() || mo.estimates.TAM_total_students_US}, SAM: ${mo.estimates.SAM_students_interested?.toLocaleString?.() || mo.estimates.SAM_students_interested}` : ""),
+          growth: mo.growth || mo.growth_rate || mo.explanation_and_growth_potential || "",
+          trends: mo.trends || mo.key_trends || [],
         }
-      : undefined
-    const comp = raw.competitors || raw.competitive_landscape
+      : undefined;
+    
+    // Competitors - handle UPPERCASE
+    const comp = raw.competitors || raw.competitive_landscape || raw.COMPETITORS;
     norm.competitors = Array.isArray(comp)
       ? comp.map((c: any) => ({
           name: c.name,
@@ -63,134 +79,173 @@ export function MarketMapperResults({
           weaknesses: c.weaknesses || [],
           marketPosition: c.marketPosition || c.market_position,
         }))
-      : []
-    const pos = raw.positioning || raw.market_positioning
+      : [];
+    
+    // Positioning - handle UPPERCASE and different field names
+    const pos = raw.positioning || raw.market_positioning || raw.POSITIONING;
     norm.positioning = pos
       ? {
-          usp: pos.usp || pos.unique_selling_proposition || '',
-          differentiation: pos.differentiation || pos.differentiation_strategies || [],
+          usp: pos.usp || pos.unique_selling_proposition || "",
+          differentiation: pos.differentiation || 
+            pos.differentiation_strategies || 
+            pos.key_differentiation_strategies || [],
           valueProposition: pos.valueProposition || pos.value_proposition,
         }
-      : undefined
-    const rec = raw.recommendations || raw.strategic_recommendations
+      : undefined;
+    
+    // Recommendations - handle UPPERCASE and numeric priorities
+    const rec = raw.recommendations || raw.strategic_recommendations || raw.RECOMMENDATIONS;
     norm.recommendations = Array.isArray(rec)
       ? rec.map((r: any) => ({
-          action: r.action || r.title || '',
-          priority: (r.priority || 'medium').toLowerCase(),
-          reasoning: r.reasoning,
+          action: r.action || r.title || "",
+          priority: typeof r.priority === "number" 
+            ? (r.priority <= 2 ? "high" : r.priority <= 3 ? "medium" : "low")
+            : (r.priority || "medium").toString().toLowerCase(),
+          reasoning: r.reasoning || r.why || "",
         }))
-      : []
-    return norm
-  }
+      : [];
+    
+    return norm;
+  };
 
-  const normalized = normalizeResults(results)
+  const normalized = normalizeResults(rawResults);
 
   // Convert normalized results to Markdown
   const resultsToMarkdown = (r: any): string => {
-    let md = `# Market Analysis Report\n\n`
+    let md = `# Market Analysis Report\n\n`;
     if (r.executiveSummary) {
-      md += `## Executive Summary\n\n${r.executiveSummary}\n\n`
+      md += `## Executive Summary\n\n${r.executiveSummary}\n\n`;
     }
     if (r.marketOpportunity) {
-      md += `## Market Opportunity\n\n- Market Size: ${r.marketOpportunity.size}\n- Growth Potential: ${r.marketOpportunity.growth}\n`
+      md += `## Market Opportunity\n\n- Market Size: ${r.marketOpportunity.size}\n- Growth Potential: ${r.marketOpportunity.growth}\n`;
       if (r.marketOpportunity.trends && r.marketOpportunity.trends.length) {
-        md += `\n### Key Trends\n\n`
-        md += r.marketOpportunity.trends.map((t: string) => `- ${t}`).join('\n') + '\n\n'
+        md += `\n### Key Trends\n\n`;
+        md +=
+          r.marketOpportunity.trends.map((t: string) => `- ${t}`).join("\n") +
+          "\n\n";
       } else {
-        md += '\n'
+        md += "\n";
       }
     }
     if (r.targetAudience && r.targetAudience.length) {
-      md += `## Target Audience\n\n`
+      md += `## Target Audience\n\n`;
       r.targetAudience.forEach((seg: any, idx: number) => {
-        md += `### ${idx + 1}. ${seg.segment}${seg.size ? ` (${seg.size})` : ''}\n\n`
+        md += `### ${idx + 1}. ${seg.segment}${
+          seg.size ? ` (${seg.size})` : ""
+        }\n\n`;
         if (seg.pain_points && seg.pain_points.length) {
-          md += `Pain Points:\n`
-          md += seg.pain_points.map((p: string) => `- ${p}`).join('\n') + '\n\n'
+          md += `Pain Points:\n`;
+          md +=
+            seg.pain_points.map((p: string) => `- ${p}`).join("\n") + "\n\n";
         }
         if (seg.characteristics && seg.characteristics.length) {
-          md += `Characteristics:\n`
-          md += seg.characteristics.map((c: string) => `- ${c}`).join('\n') + '\n\n'
+          md += `Characteristics:\n`;
+          md +=
+            seg.characteristics.map((c: string) => `- ${c}`).join("\n") +
+            "\n\n";
         }
-      })
+      });
     }
     if (r.positioning) {
-      md += `## Market Positioning\n\n- Unique Selling Proposition: ${r.positioning.usp}\n`
+      md += `## Market Positioning\n\n- Unique Selling Proposition: ${r.positioning.usp}\n`;
       if (r.positioning.valueProposition) {
-        md += `- Value Proposition: ${r.positioning.valueProposition}\n`
+        md += `- Value Proposition: ${r.positioning.valueProposition}\n`;
       }
-      if (r.positioning.differentiation && r.positioning.differentiation.length) {
-        md += `\n### Differentiation Strategies\n\n`
-        md += r.positioning.differentiation.map((d: string) => `- ${d}`).join('\n') + '\n\n'
+      if (
+        r.positioning.differentiation &&
+        r.positioning.differentiation.length
+      ) {
+        md += `\n### Differentiation Strategies\n\n`;
+        md +=
+          r.positioning.differentiation
+            .map((d: string) => `- ${d}`)
+            .join("\n") + "\n\n";
       } else {
-        md += '\n'
+        md += "\n";
       }
     }
     if (r.competitors && r.competitors.length) {
-      md += `## Competitive Landscape\n\n`
+      md += `## Competitive Landscape\n\n`;
       r.competitors.forEach((c: any, idx: number) => {
-        md += `### ${idx + 1}. ${c.name}${c.marketPosition ? ` (${c.marketPosition})` : ''}\n\n`
+        md += `### ${idx + 1}. ${c.name}${
+          c.marketPosition ? ` (${c.marketPosition})` : ""
+        }\n\n`;
         if (c.strengths && c.strengths.length) {
-          md += `Strengths:\n`
-          md += c.strengths.map((s: string) => `- ${s}`).join('\n') + '\n\n'
+          md += `Strengths:\n`;
+          md += c.strengths.map((s: string) => `- ${s}`).join("\n") + "\n\n";
         }
         if (c.weaknesses && c.weaknesses.length) {
-          md += `Weaknesses:\n`
-          md += c.weaknesses.map((w: string) => `- ${w}`).join('\n') + '\n\n'
+          md += `Weaknesses:\n`;
+          md += c.weaknesses.map((w: string) => `- ${w}`).join("\n") + "\n\n";
         }
-      })
+      });
     }
     if (r.recommendations && r.recommendations.length) {
-      md += `## Strategic Recommendations\n\n`
+      md += `## Strategic Recommendations\n\n`;
       r.recommendations.forEach((rec: any, idx: number) => {
-        md += `${idx + 1}. ${rec.action} (${(rec.priority || 'medium').toUpperCase()} PRIORITY)\n`
-        if (rec.reasoning) md += `   - Reasoning: ${rec.reasoning}\n`
-      })
-      md += `\n`
+        md += `${idx + 1}. ${rec.action} (${(
+          rec.priority || "medium"
+        ).toUpperCase()} PRIORITY)\n`;
+        if (rec.reasoning) md += `   - Reasoning: ${rec.reasoning}\n`;
+      });
+      md += `\n`;
     }
-    return md.trim() + '\n'
-  }
+    return md.trim() + "\n";
+  };
 
   // Very simple Markdown -> HTML converter (headings, lists, bold)
   const simpleMarkdownToHtml = (markdown: string): string => {
-    const lines = markdown.split(/\r?\n/)
-    let html = ''
-    let inList = false
+    const lines = markdown.split(/\r?\n/);
+    let html = "";
+    let inList = false;
     const flushList = () => {
       if (inList) {
-        html += '</ul>'
-        inList = false
+        html += "</ul>";
+        inList = false;
       }
-    }
+    };
     for (const line of lines) {
-      if (line.startsWith('### ')) {
-        flushList(); html += `<h3>${line.slice(4)}</h3>`; continue
+      if (line.startsWith("### ")) {
+        flushList();
+        html += `<h3>${line.slice(4)}</h3>`;
+        continue;
       }
-      if (line.startsWith('## ')) {
-        flushList(); html += `<h2>${line.slice(3)}</h2>`; continue
+      if (line.startsWith("## ")) {
+        flushList();
+        html += `<h2>${line.slice(3)}</h2>`;
+        continue;
       }
-      if (line.startsWith('# ')) {
-        flushList(); html += `<h1>${line.slice(2)}</h1>`; continue
+      if (line.startsWith("# ")) {
+        flushList();
+        html += `<h1>${line.slice(2)}</h1>`;
+        continue;
       }
-      if (line.startsWith('- ')) {
-        if (!inList) { html += '<ul>'; inList = true }
-        html += `<li>${line.slice(2)}</li>`
-        continue
+      if (line.startsWith("- ")) {
+        if (!inList) {
+          html += "<ul>";
+          inList = true;
+        }
+        html += `<li>${line.slice(2)}</li>`;
+        continue;
       }
-      if (line.trim() === '') {
-        flushList(); html += '<p></p>'
-        continue
+      if (line.trim() === "") {
+        flushList();
+        html += "<p></p>";
+        continue;
       }
       // Bold **text**
-      const boldProcessed = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      html += `<p>${boldProcessed}</p>`
+      const boldProcessed = line.replace(
+        /\*\*(.*?)\*\*/g,
+        "<strong>$1</strong>"
+      );
+      html += `<p>${boldProcessed}</p>`;
     }
-    flushList()
-    return html
-  }
+    flushList();
+    return html;
+  };
 
-  const markdownReport = resultsToMarkdown(normalized)
-  const htmlReport = simpleMarkdownToHtml(markdownReport)
+  const markdownReport = resultsToMarkdown(normalized);
+  const htmlReport = simpleMarkdownToHtml(markdownReport);
   const getPriorityColor = (priority: "high" | "medium" | "low") => {
     switch (priority) {
       case "high":
@@ -203,7 +258,7 @@ export function MarketMapperResults({
   };
 
   const exportResults = () => {
-    const dataStr = JSON.stringify(results, null, 2);
+    const dataStr = JSON.stringify(rawResults, null, 2);
     const dataBlob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement("a");
@@ -251,22 +306,6 @@ export function MarketMapperResults({
         </CardHeader>
       </Card>
 
-      {/* Debug: Show raw data structure */}
-      {process.env.NODE_ENV === "development" && (
-        <Card className="border border-gray-300 bg-gray-50">
-          <CardHeader>
-            <CardTitle className="text-sm">
-              Debug: Results Data Structure
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <pre className="text-xs overflow-auto max-h-40 bg-white p-2 rounded">
-              {JSON.stringify(results, null, 2)}
-            </pre>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Markdown Report (from JSON) */}
       <Card className="border-2 border-blue-200">
         <CardHeader>
@@ -274,7 +313,9 @@ export function MarketMapperResults({
             <FileText className="h-5 w-5" />
             Market Analysis Report (Markdown)
           </CardTitle>
-          <CardDescription>Auto-generated from the AI JSON result</CardDescription>
+          <CardDescription>
+            Auto-generated from the AI JSON result
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="prose max-w-none">
@@ -300,7 +341,7 @@ export function MarketMapperResults({
           {/* Show all available data */}
           <div className="space-y-8">
             {/* Executive Summary */}
-            {results.executiveSummary ? (
+            {normalized.executiveSummary ? (
               <div className="mb-8">
                 <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
@@ -310,7 +351,7 @@ export function MarketMapperResults({
                 </h3>
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
                   <div className="text-gray-700 leading-relaxed text-lg whitespace-pre-wrap">
-                    {results.executiveSummary}
+                    {normalized.executiveSummary}
                   </div>
                 </div>
               </div>
@@ -323,7 +364,7 @@ export function MarketMapperResults({
             )}
 
             {/* Market Opportunity */}
-            {results.marketOpportunity ? (
+            {normalized.marketOpportunity ? (
               <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-lg border border-green-200">
                 <h4 className="text-xl font-bold text-green-900 mb-4 flex items-center gap-2">
                   <TrendingUp className="h-5 w-5" />
@@ -332,20 +373,20 @@ export function MarketMapperResults({
                 <div className="space-y-3">
                   <div className="text-green-800 text-lg">
                     <span className="font-semibold">Market Size:</span>{" "}
-                    {results.marketOpportunity.size}
+                    {normalized.marketOpportunity.size}
                   </div>
                   <div className="text-green-800 text-lg">
                     <span className="font-semibold">Growth Potential:</span>{" "}
-                    {results.marketOpportunity.growth}
+                    {normalized.marketOpportunity.growth}
                   </div>
-                  {results.marketOpportunity.trends &&
-                    results.marketOpportunity.trends.length > 0 && (
+                  {normalized.marketOpportunity.trends &&
+                    normalized.marketOpportunity.trends.length > 0 && (
                       <div>
                         <h5 className="font-semibold text-green-900 mb-2">
                           Key Trends:
                         </h5>
                         <ul className="space-y-1">
-                          {results.marketOpportunity.trends.map(
+                          {normalized.marketOpportunity.trends.map(
                             (trend, index) => (
                               <li
                                 key={index}
@@ -370,25 +411,22 @@ export function MarketMapperResults({
             )}
 
             {/* Target Audience */}
-            {results.targetAudience && results.targetAudience.length > 0 ? (
+            {normalized.targetAudience &&
+            normalized.targetAudience.length > 0 ? (
               <div className="bg-gradient-to-br from-purple-50 to-violet-50 p-6 rounded-lg border border-purple-200">
                 <h4 className="text-xl font-bold text-purple-900 mb-4 flex items-center gap-2">
                   <Users className="h-5 w-5" />
                   🎯 Target Audience
                 </h4>
                 <div className="space-y-4">
-                  {results.targetAudience.map((segment, index) => (
+                  {normalized.targetAudience.map((segment, index) => (
                     <div
                       key={index}
                       className="bg-white p-4 rounded-lg border border-purple-200"
                     >
                       <div className="font-bold text-lg text-purple-900 mb-2">
                         {segment.segment}{" "}
-                        {segment.size && (
-                          <span className="text-sm font-normal">
-                            ({segment.size})
-                          </span>
-                        )}
+                        {segment.size ? `(${segment.size})` : ""}
                       </div>
                       <div className="mb-3">
                         <h6 className="font-semibold text-purple-800 mb-2">
@@ -437,7 +475,7 @@ export function MarketMapperResults({
             )}
 
             {/* Market Positioning */}
-            {results.positioning ? (
+            {normalized.positioning ? (
               <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-lg border border-yellow-200">
                 <h4 className="text-xl font-bold text-orange-900 mb-4 flex items-center gap-2">
                   <Lightbulb className="h-5 w-5" />
@@ -449,27 +487,27 @@ export function MarketMapperResults({
                       Unique Selling Proposition
                     </h5>
                     <p className="text-orange-800 text-lg">
-                      {results.positioning.usp}
+                      {normalized.positioning.usp}
                     </p>
                   </div>
-                  {results.positioning.valueProposition && (
+                  {normalized.positioning.valueProposition && (
                     <div className="bg-white p-4 rounded-lg border border-orange-200">
                       <h5 className="font-bold text-orange-900 mb-2">
                         Value Proposition
                       </h5>
                       <p className="text-orange-800">
-                        {results.positioning.valueProposition}
+                        {normalized.positioning.valueProposition}
                       </p>
                     </div>
                   )}
-                  {results.positioning.differentiation &&
-                    results.positioning.differentiation.length > 0 && (
+                  {normalized.positioning.differentiation &&
+                    normalized.positioning.differentiation.length > 0 && (
                       <div className="bg-white p-4 rounded-lg border border-orange-200">
                         <h5 className="font-bold text-orange-900 mb-2">
                           Differentiation Strategies
                         </h5>
                         <ul className="space-y-2">
-                          {results.positioning.differentiation.map(
+                          {normalized.positioning.differentiation.map(
                             (diff, index) => (
                               <li
                                 key={index}
@@ -494,14 +532,14 @@ export function MarketMapperResults({
             )}
 
             {/* Competitive Landscape */}
-            {results.competitors && results.competitors.length > 0 ? (
+            {normalized.competitors && normalized.competitors.length > 0 ? (
               <div className="bg-gradient-to-br from-red-50 to-pink-50 p-6 rounded-lg border border-red-200">
                 <h4 className="text-xl font-bold text-red-900 mb-4 flex items-center gap-2">
                   <Target className="h-5 w-5" />
                   🏆 Competitive Landscape
                 </h4>
                 <div className="space-y-4">
-                  {results.competitors.map((competitor, index) => (
+                  {normalized.competitors.map((competitor, index) => (
                     <div
                       key={index}
                       className="bg-white p-4 rounded-lg border border-red-200"
@@ -563,14 +601,15 @@ export function MarketMapperResults({
             )}
 
             {/* Strategic Recommendations */}
-            {results.recommendations && results.recommendations.length > 0 ? (
+            {normalized.recommendations &&
+            normalized.recommendations.length > 0 ? (
               <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
                 <h4 className="text-xl font-bold text-blue-900 mb-4 flex items-center gap-2">
                   <CheckSquare className="h-5 w-5" />
                   🚀 Strategic Recommendations
                 </h4>
                 <div className="space-y-4">
-                  {results.recommendations.map((rec, index) => (
+                  {normalized.recommendations.map((rec, index) => (
                     <div
                       key={index}
                       className="bg-white p-4 rounded-lg border border-blue-200"
@@ -608,7 +647,7 @@ export function MarketMapperResults({
       </Card>
 
       {/* Executive Summary */}
-      {results.executiveSummary && (
+      {normalized.executiveSummary && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -619,7 +658,7 @@ export function MarketMapperResults({
           <CardContent>
             <div className="prose prose-sm max-w-none">
               <p className="text-gray-700 leading-relaxed whitespace-pre-line">
-                {results.executiveSummary}
+                {normalized.executiveSummary}
               </p>
             </div>
           </CardContent>
@@ -627,7 +666,7 @@ export function MarketMapperResults({
       )}
 
       {/* Target Audience */}
-      {results.targetAudience && results.targetAudience.length > 0 && (
+      {normalized.targetAudience && normalized.targetAudience.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -640,7 +679,7 @@ export function MarketMapperResults({
           </CardHeader>
           <CardContent>
             <div className="grid gap-4">
-              {results.targetAudience.map((segment, index) => (
+              {normalized.targetAudience.map((segment, index) => (
                 <div key={index} className="p-4 border rounded-lg bg-gray-50">
                   <div className="flex items-start justify-between mb-3">
                     <h3 className="font-semibold text-gray-900">
@@ -697,7 +736,7 @@ export function MarketMapperResults({
       )}
 
       {/* Market Opportunity */}
-      {results.marketOpportunity && (
+      {normalized.marketOpportunity && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -713,7 +752,7 @@ export function MarketMapperResults({
                     Market Size
                   </h3>
                   <p className="text-blue-800">
-                    {results.marketOpportunity.size}
+                    {normalized.marketOpportunity.size}
                   </p>
                 </div>
                 <div className="p-4 bg-green-50 rounded-lg">
@@ -721,19 +760,19 @@ export function MarketMapperResults({
                     Growth Potential
                   </h3>
                   <p className="text-green-800">
-                    {results.marketOpportunity.growth}
+                    {normalized.marketOpportunity.growth}
                   </p>
                 </div>
               </div>
 
-              {results.marketOpportunity.trends &&
-                results.marketOpportunity.trends.length > 0 && (
+              {normalized.marketOpportunity.trends &&
+                normalized.marketOpportunity.trends.length > 0 && (
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-3">
                       Key Trends
                     </h3>
                     <ul className="space-y-2">
-                      {results.marketOpportunity.trends.map((trend, idx) => (
+                      {normalized.marketOpportunity.trends.map((trend, idx) => (
                         <li
                           key={idx}
                           className="text-sm text-gray-700 flex items-start gap-2"
@@ -751,7 +790,7 @@ export function MarketMapperResults({
       )}
 
       {/* Competitors */}
-      {results.competitors && results.competitors.length > 0 && (
+      {normalized.competitors && normalized.competitors.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -764,7 +803,7 @@ export function MarketMapperResults({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {results.competitors.map((competitor, index) => (
+              {normalized.competitors.map((competitor, index) => (
                 <div key={index} className="p-4 border rounded-lg">
                   <div className="flex items-start justify-between mb-3">
                     <h3 className="font-semibold text-gray-900">
@@ -820,7 +859,7 @@ export function MarketMapperResults({
       )}
 
       {/* Positioning */}
-      {results.positioning && (
+      {normalized.positioning && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -834,16 +873,16 @@ export function MarketMapperResults({
                 <h3 className="font-semibold text-yellow-900 mb-2">
                   Unique Selling Proposition
                 </h3>
-                <p className="text-yellow-800">{results.positioning.usp}</p>
+                <p className="text-yellow-800">{normalized.positioning.usp}</p>
               </div>
 
-              {results.positioning.valueProposition && (
+              {normalized.positioning.valueProposition && (
                 <div className="p-4 bg-purple-50 rounded-lg">
                   <h3 className="font-semibold text-purple-900 mb-2">
                     Value Proposition
                   </h3>
                   <p className="text-purple-800">
-                    {results.positioning.valueProposition}
+                    {normalized.positioning.valueProposition}
                   </p>
                 </div>
               )}
@@ -853,7 +892,7 @@ export function MarketMapperResults({
                   Differentiation Strategies
                 </h3>
                 <div className="grid gap-2">
-                  {results.positioning.differentiation.map((diff, idx) => (
+                  {normalized.positioning.differentiation.map((diff, idx) => (
                     <div
                       key={idx}
                       className="flex items-start gap-2 p-2 bg-gray-50 rounded"
@@ -870,7 +909,7 @@ export function MarketMapperResults({
       )}
 
       {/* Recommendations */}
-      {results.recommendations && results.recommendations.length > 0 && (
+      {normalized.recommendations && normalized.recommendations.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -883,7 +922,7 @@ export function MarketMapperResults({
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {results.recommendations.map((rec, index) => (
+              {normalized.recommendations.map((rec, index) => (
                 <div key={index} className="p-4 border rounded-lg">
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="font-medium text-gray-900 flex-1">
