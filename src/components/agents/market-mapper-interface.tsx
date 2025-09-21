@@ -82,13 +82,13 @@ interface MarketMapperInterfaceProps {
 
 /**
  * MarketMapperInterface - A comprehensive multi-step interface for market analysis
- * 
+ *
  * This component implements Vercel's Web Interface Guidelines for:
  * - Full keyboard navigation and ARIA support
  * - Accessible form handling with proper validation
  * - Loading states and error management
  * - Mobile-optimized interactions
- * 
+ *
  * @component
  * @param {MarketMapperInterfaceProps} props - Component properties
  * @returns {JSX.Element} The market mapper interface
@@ -106,12 +106,12 @@ export function MarketMapperInterface({
   const [targetMarket, setTargetMarket] = useState(
     savedFormData?.targetMarket || ""
   );
-  
+
   // Multi-step flow state
   const [currentStep, setCurrentStep] = useState<
     "idea" | "questions" | "analysis"
   >(savedFormData?.questions ? "questions" : "idea");
-  
+
   // Questions and answers state
   const [questions, setQuestions] = useState<Question[]>(
     savedFormData?.questions?.map(q => ({
@@ -122,54 +122,40 @@ export function MarketMapperInterface({
   const [answers, setAnswers] = useState<Record<string, string>>(
     savedFormData?.answers || {}
   );
-  
+
   // Results and error state
   const [analysisResults, setAnalysisResults] =
     useState<MarketMapperOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Loading state management
   const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  
+
   // Refs for focus management (WAI-ARIA APG requirement)
   const businessIdeaRef = useRef<HTMLTextAreaElement>(null);
   const firstErrorRef = useRef<HTMLDivElement>(null);
   const submitButtonRef = useRef<HTMLButtonElement>(null);
-  
+
   /**
    * Announces messages to screen readers using aria-live regions
    * @param message - Message to announce
    */
   const announceToScreenReader = useCallback((message: string) => {
-    const announcement = document.createElement('div');
-    announcement.setAttribute('aria-live', 'polite');
-    announcement.setAttribute('aria-atomic', 'true');
-    announcement.setAttribute('class', 'sr-only');
+    const announcement = document.createElement("div");
+    announcement.setAttribute("aria-live", "polite");
+    announcement.setAttribute("aria-atomic", "true");
+    announcement.setAttribute("class", "sr-only");
     announcement.textContent = message;
-    
+
     document.body.appendChild(announcement);
-    
+
     // Clean up after announcement
     setTimeout(() => {
       document.body.removeChild(announcement);
     }, 1000);
   }, []);
-  
-  /**
-   * Handle keyboard navigation (MUST: Full keyboard support per WAI-ARIA APG)
-   */
-  const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
-    // Enter key should submit when focused on textarea with Cmd/Ctrl
-    if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
-      event.preventDefault();
-      if (currentStep === 'idea') {
-        handleIdeaSubmit();
-      } else if (currentStep === 'questions') {
-        handleAnalyze();
-      }
-    }
-  }, [currentStep]);
+
 
   /**
    * Handles the submission of business idea form
@@ -178,7 +164,7 @@ export function MarketMapperInterface({
   const handleIdeaSubmit = useCallback(async () => {
     // Trim and validate input (MUST: Don't block typing; accept free text and validate after)
     const trimmedIdea = businessIdea.trim();
-    
+
     if (!trimmedIdea) {
       setError("Please describe your business idea");
       businessIdeaRef.current?.focus();
@@ -186,7 +172,9 @@ export function MarketMapperInterface({
     }
 
     if (trimmedIdea.length < 10) {
-      setError("Business idea must be at least 10 characters for meaningful analysis");
+      setError(
+        "Business idea must be at least 10 characters for meaningful analysis"
+      );
       businessIdeaRef.current?.focus();
       return;
     }
@@ -208,47 +196,55 @@ export function MarketMapperInterface({
       };
 
       const result = await onAnalyze(input);
-      
+
       if (result.questions && result.questions.length > 0) {
         setQuestions(result.questions.map(q => ({ ...q, answered: false })));
         setCurrentStep("questions");
-        
+
         // Announce success to screen readers (MUST: Use polite aria-live)
-        announceToScreenReader(`Generated ${result.questions.length} questions for market validation`);
+        announceToScreenReader(
+          `Generated ${result.questions.length} questions for market validation`
+        );
       } else {
-        setError("No questions were generated. This could be due to an unclear business idea. Please try refining your description or try again.");
+        setError(
+          "No questions were generated. This could be due to an unclear business idea. Please try refining your description or try again."
+        );
         firstErrorRef.current?.focus();
       }
     } catch (error) {
       console.error("Error generating questions:", error);
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : "Failed to generate questions. Please try again.";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to generate questions. Please try again.";
       setError(errorMessage);
-      
+
       // Focus first error for accessibility (MUST: on submit, focus first error)
       firstErrorRef.current?.focus();
     } finally {
       setIsGeneratingQuestions(false);
     }
-  }, [businessIdea, industry, targetMarket, onAnalyze]);
+  }, [businessIdea, industry, targetMarket, onAnalyze, announceToScreenReader]);
 
   /**
    * Handles answer changes with proper validation and state updates
    * @param questionId - Unique identifier for the question
    * @param answer - User's answer text
    */
-  const handleAnswerChange = useCallback((questionId: string, answer: string) => {
-    // Update answers state with trimmed values (MUST: Trim values to handle text expansion trailing spaces)
-    setAnswers(prev => ({ ...prev, [questionId]: answer }));
+  const handleAnswerChange = useCallback(
+    (questionId: string, answer: string) => {
+      // Update answers state with trimmed values (MUST: Trim values to handle text expansion trailing spaces)
+      setAnswers(prev => ({ ...prev, [questionId]: answer }));
 
-    // Mark question as answered based on content length
-    setQuestions(prev =>
-      prev.map(q =>
-        q.id === questionId ? { ...q, answered: answer.trim().length > 0 } : q
-      )
-    );
-  }, []);
+      // Mark question as answered based on content length
+      setQuestions(prev =>
+        prev.map(q =>
+          q.id === questionId ? { ...q, answered: answer.trim().length > 0 } : q
+        )
+      );
+    },
+    []
+  );
 
   /**
    * Handles the final analysis submission with comprehensive validation
@@ -257,11 +253,15 @@ export function MarketMapperInterface({
     // Validate required questions are answered
     const requiredQuestions = questions.filter(q => q.required);
     const unansweredRequired = requiredQuestions.filter(q => !q.answered);
-    
+
     if (unansweredRequired.length > 0) {
-      setError(`Please answer all required questions (${unansweredRequired.length} remaining)`);
+      setError(
+        `Please answer all required questions (${unansweredRequired.length} remaining)`
+      );
       // Focus first unanswered required question
-      const firstUnanswered = document.getElementById(`question-${unansweredRequired[0].id}`);
+      const firstUnanswered = document.getElementById(
+        `question-${unansweredRequired[0].id}`
+      );
       firstUnanswered?.focus();
       return;
     }
@@ -287,22 +287,49 @@ export function MarketMapperInterface({
       const result = await onAnalyze(input);
       setAnalysisResults(result);
       setCurrentStep("analysis");
-      
+
       // Announce completion to screen readers
       announceToScreenReader("Market analysis completed successfully");
     } catch (error) {
       console.error("Error performing analysis:", error);
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : "Failed to perform analysis. Please try again.";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to perform analysis. Please try again.";
       setError(errorMessage);
-      
+
       // Focus error for accessibility
       firstErrorRef.current?.focus();
     } finally {
       setIsAnalyzing(false);
     }
-  }, [businessIdea, industry, targetMarket, answers, questions, onAnalyze, announceToScreenReader]);
+  }, [
+    businessIdea,
+    industry,
+    targetMarket,
+    answers,
+    questions,
+    onAnalyze,
+    announceToScreenReader,
+  ]);
+
+  /**
+   * Handle keyboard navigation (MUST: Full keyboard support per WAI-ARIA APG)
+   */
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent) => {
+      // Enter key should submit when focused on textarea with Cmd/Ctrl
+      if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
+        if (currentStep === "idea") {
+          handleIdeaSubmit();
+        } else if (currentStep === "questions") {
+          handleAnalyze();
+        }
+      }
+    },
+    [currentStep, handleIdeaSubmit, handleAnalyze]
+  );
 
   /**
    * Calculates completion progress as a percentage
@@ -336,10 +363,10 @@ export function MarketMapperInterface({
     setError(null);
     setIsGeneratingQuestions(false);
     setIsAnalyzing(false);
-    
+
     // Reset focus to beginning
     businessIdeaRef.current?.focus();
-    
+
     // Announce reset to screen readers
     announceToScreenReader("Form has been reset to start over");
   }, [announceToScreenReader]);
@@ -350,22 +377,24 @@ export function MarketMapperInterface({
    * @param defaultText - Default button text
    * @returns Appropriate button text
    */
-  const getButtonText = useCallback((isLoading: boolean, defaultText: string) => {
-    return isLoading ? defaultText : defaultText;
-  }, []);
+  const getButtonText = useCallback(
+    (isLoading: boolean, defaultText: string) => {
+      return isLoading ? defaultText : defaultText;
+    },
+    []
+  );
 
   if (currentStep === "idea") {
     return (
       <Card className="w-full max-w-2xl mx-auto" role="main">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <div 
-              className="p-2 bg-blue-100 rounded-lg"
-              aria-hidden="true"
-            >
+            <div className="p-2 bg-blue-100 rounded-lg" aria-hidden="true">
               <FileText className="h-6 w-6 text-blue-600" />
             </div>
-            <h1 className="scroll-margin-top-24">Market Mapper - Business Idea</h1>
+            <h1 className="scroll-margin-top-24">
+              Market Mapper - Business Idea
+            </h1>
           </CardTitle>
           <CardDescription>
             Describe your startup idea to begin comprehensive market analysis
@@ -374,8 +403,8 @@ export function MarketMapperInterface({
         <CardContent className="space-y-4">
           {/* Error Alert with proper ARIA live region */}
           {error && (
-            <Alert 
-              variant="destructive" 
+            <Alert
+              variant="destructive"
               role="alert"
               aria-live="polite"
               ref={firstErrorRef}
@@ -385,7 +414,7 @@ export function MarketMapperInterface({
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          
+
           {/* Business Idea Input - Primary form field */}
           <div>
             <label
@@ -409,7 +438,7 @@ export function MarketMapperInterface({
               autoComplete="off"
               spellCheck="false" // SHOULD: Disable spellcheck for business terms
             />
-            
+
             {/* Character count and help text */}
             <div className="flex justify-between items-center mt-1">
               <div
@@ -423,10 +452,7 @@ export function MarketMapperInterface({
                   ? `${10 - businessIdea.length} more characters needed`
                   : `${businessIdea.length} characters`}
               </div>
-              <div 
-                id="businessIdea-help"
-                className="text-xs text-gray-400"
-              >
+              <div id="businessIdea-help" className="text-xs text-gray-400">
                 Minimum 10 characters
               </div>
             </div>
@@ -486,13 +512,18 @@ export function MarketMapperInterface({
               isLoading
             }
             className="w-full min-h-[44px] touch-manipulation" // MUST: Hit target ≥44px on mobile
-            aria-describedby={businessIdea.trim().length < 10 ? "businessIdea-count" : undefined}
+            aria-describedby={
+              businessIdea.trim().length < 10 ? "businessIdea-count" : undefined
+            }
             type="submit"
           >
             {/* MUST: Loading buttons show spinner and keep original label */}
-            {(isGeneratingQuestions || isLoading) ? (
+            {isGeneratingQuestions || isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                <Loader2
+                  className="mr-2 h-4 w-4 animate-spin"
+                  aria-hidden="true"
+                />
                 Generate Clarification Questions
               </>
             ) : (
