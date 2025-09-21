@@ -228,28 +228,30 @@ export function MarketMapperResults({
     let html = "";
     let inList = false;
     let sectionCount = 0;
-    
+
     const flushList = () => {
       if (inList) {
         html += "</ul>";
         inList = false;
       }
     };
-    
+
     const sectionColors = [
-      'from-blue-500 to-indigo-500',
-      'from-green-500 to-emerald-500', 
-      'from-purple-500 to-violet-500',
-      'from-orange-500 to-red-500',
-      'from-pink-500 to-rose-500',
-      'from-teal-500 to-cyan-500'
+      "from-blue-500 to-indigo-500",
+      "from-green-500 to-emerald-500",
+      "from-purple-500 to-violet-500",
+      "from-orange-500 to-red-500",
+      "from-pink-500 to-rose-500",
+      "from-teal-500 to-cyan-500",
     ];
-    
+
     for (const line of lines) {
       if (line.startsWith("### ")) {
         flushList();
         html += `<h3 class="text-xl font-semibold text-gray-700 mt-6 mb-3 flex items-center gap-2">
-          <div class="w-2 h-6 bg-gradient-to-b ${sectionColors[sectionCount % sectionColors.length]} rounded-full"></div>
+          <div class="w-2 h-6 bg-gradient-to-b ${
+            sectionColors[sectionCount % sectionColors.length]
+          } rounded-full"></div>
           ${line.slice(4)}
         </h3>`;
         continue;
@@ -257,7 +259,8 @@ export function MarketMapperResults({
       if (line.startsWith("## ")) {
         flushList();
         sectionCount++;
-        const colorClass = sectionColors[(sectionCount - 1) % sectionColors.length];
+        const colorClass =
+          sectionColors[(sectionCount - 1) % sectionColors.length];
         html += `<div class="mt-8 mb-6">
           <h2 class="text-2xl font-bold bg-gradient-to-r ${colorClass} bg-clip-text text-transparent mb-2 flex items-center gap-3">
             <div class="w-8 h-8 bg-gradient-to-br ${colorClass} rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-lg">
@@ -386,16 +389,16 @@ export function MarketMapperResults({
           </div>
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-12 -translate-x-12"></div>
-          </CardHeader>
+        </CardHeader>
         <CardContent className="p-8 bg-gradient-to-br from-gray-50 to-blue-50">
           <div className="prose prose-lg max-w-none prose-headings:text-gray-800 prose-h1:text-3xl prose-h1:font-bold prose-h1:text-center prose-h1:mb-8 prose-h1:text-transparent prose-h1:bg-clip-text prose-h1:bg-gradient-to-r prose-h1:from-blue-600 prose-h1:to-indigo-600 prose-h2:text-2xl prose-h2:font-semibold prose-h2:text-gray-700 prose-h2:border-b-2 prose-h2:border-gradient-to-r prose-h2:from-blue-300 prose-h2:to-transparent prose-h2:pb-2 prose-h2:mb-4 prose-h3:text-xl prose-h3:font-medium prose-h3:text-gray-600 prose-p:text-gray-700 prose-p:leading-relaxed prose-li:text-gray-600 prose-strong:text-gray-800 prose-strong:font-semibold">
-            <div 
-              dangerouslySetInnerHTML={{ __html: htmlReport }} 
+            <div
+              dangerouslySetInnerHTML={{ __html: htmlReport }}
               className="space-y-6"
             />
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
