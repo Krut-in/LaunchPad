@@ -61,9 +61,17 @@ ${
     .join("\n") || ""
 }
 
-**Market Opportunity:** ${execSummary.marketOpportunity || ""}
+**Market Opportunity:** ${
+  typeof execSummary.marketOpportunity === 'object' && execSummary.marketOpportunity !== null
+    ? `Market size: ${execSummary.marketOpportunity.size || 'Unknown'}, Growth potential: ${execSummary.marketOpportunity.growth || 'Unknown'}`
+    : execSummary.marketOpportunity || ""
+}
 
-**Competitive Landscape:** ${execSummary.competitiveLandscape || ""}
+**Competitive Landscape:** ${
+  typeof execSummary.competitiveLandscape === 'object' && execSummary.competitiveLandscape !== null
+    ? JSON.stringify(execSummary.competitiveLandscape).replace(/[{}]/g, '').replace(/"/g, '').replace(/,/g, ', ')
+    : execSummary.competitiveLandscape || ""
+}
 
 **Investment Readiness:** ${
         execSummary.investmentReadiness?.replace("_", " ").toUpperCase() ||
