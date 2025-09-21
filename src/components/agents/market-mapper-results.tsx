@@ -39,26 +39,36 @@ export function MarketMapperResults({
     const norm: any = {};
 
     // Executive Summary - handle both object and string formats
-    const rawExecutiveSummary = 
+    const rawExecutiveSummary =
       raw.executiveSummary ||
       raw.executive_summary ||
       raw.EXECUTIVE_SUMMARY ||
       raw.summary ||
       "";
-    
+
     // Handle enhanced object format vs legacy string format
-    if (typeof rawExecutiveSummary === 'object' && rawExecutiveSummary !== null) {
+    if (
+      typeof rawExecutiveSummary === "object" &&
+      rawExecutiveSummary !== null
+    ) {
       const execSummary = rawExecutiveSummary;
-      norm.executiveSummary = `${execSummary.overview || ''}
+      norm.executiveSummary = `${execSummary.overview || ""}
 
 **Key Findings:**
-${execSummary.keyFindings?.map((finding: string) => `• ${finding}`).join('\n') || ''}
+${
+  execSummary.keyFindings
+    ?.map((finding: string) => `• ${finding}`)
+    .join("\n") || ""
+}
 
-**Market Opportunity:** ${execSummary.marketOpportunity || ''}
+**Market Opportunity:** ${execSummary.marketOpportunity || ""}
 
-**Competitive Landscape:** ${execSummary.competitiveLandscape || ''}
+**Competitive Landscape:** ${execSummary.competitiveLandscape || ""}
 
-**Investment Readiness:** ${execSummary.investmentReadiness?.replace('_', ' ').toUpperCase() || 'Not assessed'}`;
+**Investment Readiness:** ${
+        execSummary.investmentReadiness?.replace("_", " ").toUpperCase() ||
+        "Not assessed"
+      }`;
     } else {
       norm.executiveSummary = rawExecutiveSummary;
     }
@@ -250,12 +260,13 @@ ${execSummary.keyFindings?.map((finding: string) => `• ${finding}`).join('\n')
         ).toUpperCase()} PRIORITY)\n`;
         if (rec.reasoning) md += `   - Reasoning: ${rec.reasoning}\n`;
         if (rec.timeline) md += `   - Timeline: ${rec.timeline}\n`;
-        if (rec.expectedOutcome) md += `   - Expected Outcome: ${rec.expectedOutcome}\n`;
+        if (rec.expectedOutcome)
+          md += `   - Expected Outcome: ${rec.expectedOutcome}\n`;
         if (rec.resources && rec.resources.length) {
-          md += `   - Resources: ${rec.resources.join(', ')}\n`;
+          md += `   - Resources: ${rec.resources.join(", ")}\n`;
         }
         if (rec.successMetrics && rec.successMetrics.length) {
-          md += `   - Success Metrics: ${rec.successMetrics.join(', ')}\n`;
+          md += `   - Success Metrics: ${rec.successMetrics.join(", ")}\n`;
         }
         md += `\n`;
       });
@@ -420,13 +431,13 @@ ${execSummary.keyFindings?.map((finding: string) => `• ${finding}`).join('\n')
               </div>
               <div className="flex flex-col">
                 <span className="bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent">
-                  📊 Market Analysis Report
+                  Market Analysis Report
                 </span>
                 <div className="h-1 w-32 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full mt-2"></div>
               </div>
             </CardTitle>
             <CardDescription className="text-blue-100 mt-4 text-lg font-medium">
-              ✨ Comprehensive market intelligence for your business idea
+              Comprehensive market intelligence for your business idea
             </CardDescription>
           </div>
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
