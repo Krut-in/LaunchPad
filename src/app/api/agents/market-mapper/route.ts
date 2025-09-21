@@ -146,20 +146,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if we're in development mode and should use mock data
-    const isDevelopment = process.env.NODE_ENV === 'development'
-    const useMockData = isDevelopment || process.env.USE_MOCK_DATA === 'true'
+    // Use real AI analysis by default, only use mock data when explicitly requested
+    const useMockData = process.env.USE_MOCK_DATA === 'true'
 
     let result
     
     if (useMockData) {
-      // Use mock data for development when API credits are low
+      // Use mock data only when explicitly requested via environment variable
+      console.log('Using mock data (USE_MOCK_DATA=true)')
       result = generateMockResponse(input)
     } else {
-      // Initialize Market Mapper agent
+      // Initialize Market Mapper agent for real AI analysis
+      console.log('Using real AI analysis with OpenAI')
       const marketMapper = new MarketMapperAgent()
       
-      // Process the analysis
+      // Process the analysis with your sophisticated framework
       result = await marketMapper.processInput(input)
     }
     
