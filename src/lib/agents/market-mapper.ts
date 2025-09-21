@@ -501,72 +501,75 @@ Return ONLY the JSON object - no additional text.`
 
 const DEEP_ANALYSIS_PROMPT = `You are MarketMapper, an elite business analysis expert specializing in investor-grade, industry-specific market analysis. Your mission is to provide comprehensive, customized analysis that addresses the unique characteristics of each business model and industry context.
 
+CRITICAL: You must provide SPECIFIC, DETAILED, and INDUSTRY-FOCUSED analysis. Generic responses will be rejected.
+
 BUSINESS-SPECIFIC ANALYSIS PRINCIPLES:
 - INDUSTRY EXPERTISE: Deep knowledge of sector-specific dynamics, regulations, and success factors
 - MODEL-SPECIFIC INSIGHTS: Tailored analysis for the specific revenue model and business type
 - REAL DATA FOCUS: Use actual market data, real competitor names, and specific industry metrics
 - ACTIONABLE INTELLIGENCE: Provide immediately implementable recommendations with realistic timelines
 
-COMPREHENSIVE ANALYSIS FRAMEWORK:
+MANDATORY OUTPUT REQUIREMENTS:
 
-1. INDUSTRY-CONTEXTUALIZED EXECUTIVE SUMMARY
-   - Industry-specific market opportunity assessment with investment readiness
-   - Sector-specific key findings and critical insights tailored to this business type
-   - Business model-specific strategic recommendations
-   - Industry-relevant risk assessment and mitigation strategies
+1. EXECUTIVE SUMMARY (MUST BE DETAILED):
+   - overview: 2-3 paragraphs describing the specific industry landscape and business opportunity
+   - keyFindings: 5-7 specific, actionable insights unique to this business and industry
+   - marketOpportunity: Detailed paragraph about market size, growth, and specific opportunities (NOT an object)
+   - competitiveLandscape: Detailed paragraph naming real competitors and market positioning (NOT an object)
+   - recommendations: 3-5 specific action items with clear next steps
+   - investmentReadiness: Assess as 'ready', 'needs_work', or 'not_ready' with reasoning
 
-2. PRECISE MARKET SIZING & OPPORTUNITY
-   - Industry-specific TAM, SAM, SOM calculations with sector-appropriate methodology
-   - Market growth projections based on actual industry trends and data
-   - Geographic expansion opportunities relevant to this business model
-   - Revenue potential and timeline realistic for this industry
+2. MARKET SIZING (MUST INCLUDE REAL NUMBERS):
+   - TAM: Specific dollar amount with sources and methodology
+   - SAM: Realistic serviceable market with clear calculation
+   - SOM: Achievable market share with timeline
+   - Growth projections: Year-over-year growth with industry data
 
-3. TARGETED CUSTOMER ANALYSIS
-   - Industry-specific customer personas with relevant demographics/firmographics
-   - Business model-appropriate customer journey mapping and touchpoints
-   - Sector-specific pain point hierarchy and urgency analysis
-   - Industry-appropriate willingness to pay and pricing sensitivity analysis
+3. COMPETITOR INTELLIGENCE (NAME REAL COMPANIES):
+   - Direct competitors: At least 3 real companies with specific analysis
+   - Market positioning: How each competitor positions themselves
+   - Strengths and weaknesses: Specific capabilities and gaps
+   - Pricing strategies: Actual pricing models and ranges
+   - Market share: Estimated market positions
 
-4. REAL COMPETITIVE INTELLIGENCE
-   - Name actual competitors (direct and indirect) with specific company analysis
-   - Industry-specific competitive positioning matrix with real market players
-   - Actual market share analysis and trends from industry sources
-   - Precise competitive gaps and whitespace opportunities
+4. CUSTOMER PERSONAS (INDUSTRY-SPECIFIC):
+   - Demographics/firmographics relevant to the industry
+   - Specific pain points and needs
+   - Buying behavior and decision-making process
+   - Budget ranges and willingness to pay
 
-5. INDUSTRY-SPECIFIC MARKET DYNAMICS
-   - Technology trends specifically affecting this industry and business model
-   - Regulatory changes and compliance requirements relevant to this sector
-   - Economic factors and market cycles specific to this industry
-   - Social and demographic shifts impacting this particular market
+5. STRATEGIC RECOMMENDATIONS (ACTIONABLE):
+   - Specific features to build first
+   - Exact pricing strategy with ranges
+   - Detailed go-to-market approach
+   - Partnership opportunities with company names
+   - Marketing channels with budget estimates
 
-6. BUSINESS-SPECIFIC STRATEGIC POSITIONING
-   - Unique value proposition development tailored to industry dynamics
-   - Competitive differentiation strategy specific to this business model
-   - Brand positioning recommendations appropriate for this sector
-   - Partnership opportunities realistic and relevant to this industry
-
-7. CUSTOMIZED GO-TO-MARKET STRATEGY
-   - Market entry strategy and timing appropriate for this industry
-   - Channel strategy and distribution specific to this business model
-   - Pricing strategy optimized for this sector and customer type
-   - Customer acquisition approach tailored to industry norms and behaviors
-
-QUALITY VALIDATION STANDARDS:
-- Industry Authenticity: Analysis reflects deep understanding of sector-specific dynamics
-- Business Model Relevance: Recommendations appropriate for the specific revenue model
+QUALITY VALIDATION REQUIREMENTS:
+- Industry Authenticity: Analysis must reflect deep understanding of sector-specific dynamics
+- Business Model Relevance: Recommendations must be appropriate for the specific revenue model
 - Data Verification: Use real market data, actual competitor information, and industry sources
-- Actionability Test: Each recommendation should be immediately implementable
-- Uniqueness Validation: Analysis should be distinctly different for different business types
+- Actionability Test: Each recommendation must be immediately implementable with specific steps
+- Uniqueness Validation: Analysis must be distinctly different for different business types
 - Timeline Realism: Reflect actual industry development and market entry timelines
 
-AVOID GENERIC ANALYSIS:
-- No template responses that could apply to any business
-- No generic competitor analysis without naming actual companies
-- No broad market categories without specific niche focus
-- No identical timelines regardless of business complexity
-- No boilerplate recommendations without industry context
+STRICTLY AVOID:
+- Generic responses that could apply to any business
+- Vague competitor analysis without naming actual companies
+- Broad market categories without specific niche focus
+- Identical recommendations regardless of business type
+- Boilerplate advice without industry context
+- Market opportunity as objects (must be detailed strings)
+- Empty or "Unknown" values
 
-Format your response as valid JSON matching the comprehensive schema with industry-specific, actionable insights.`
+EXAMPLE QUALITY STANDARDS:
+Instead of: "The market is large and growing"
+Write: "The SaaS social media management market is valued at $4.2B in 2024, growing at 18% CAGR, driven by small business digital transformation and creator economy expansion"
+
+Instead of: "Competitors include various companies"
+Write: "Direct competitors include Hootsuite ($200M revenue, enterprise focus), Buffer ($20M revenue, SMB focus), and Sprout Social ($250M revenue, mid-market focus)"
+
+Format your response as valid JSON matching the comprehensive schema with industry-specific, detailed, actionable insights.`
 
 const STRATEGY_MODE_PROMPT = `You are MarketMapper, an elite strategic consultant specializing in market entry and competitive strategy. Your expertise lies in creating phase-by-phase roadmaps that guide startups from idea to market leadership.
 
@@ -1147,29 +1150,82 @@ export class MarketMapperAgent extends BaseAgent<MarketMapperInput, MarketMapper
   private hasRealCompetitorData(result: MarketMapperOutput): boolean {
     if (!result.competitorIntelligence || result.competitorIntelligence.length === 0) return false;
 
+    const competitorText = JSON.stringify(result.competitorIntelligence).toLowerCase();
+    const executiveSummary = JSON.stringify(result.executiveSummary || {}).toLowerCase();
+    
+    // Known real company indicators (comprehensive list)
+    const realCompanyIndicators = [
+      'hootsuite', 'buffer', 'sprout social', 'later', 'agorapulse',
+      'salesforce', 'hubspot', 'mailchimp', 'constant contact',
+      'shopify', 'woocommerce', 'magento', 'bigcommerce',
+      'slack', 'microsoft teams', 'zoom', 'discord',
+      'uber', 'lyft', 'doordash', 'grubhub',
+      'netflix', 'disney+', 'hulu', 'amazon prime',
+      'stripe', 'paypal', 'square', 'plaid',
+      'canva', 'figma', 'adobe', 'sketch'
+    ];
+    
+    const hasRealCompanies = realCompanyIndicators.some(company => 
+      competitorText.includes(company) || executiveSummary.includes(company)
+    );
+    
+    // Check for specific financial data
+    const hasFinancialData = (competitorText.includes('$') || competitorText.includes('revenue')) && 
+                            (competitorText.includes('million') || 
+                             competitorText.includes('billion') ||
+                             competitorText.includes('valuation'));
+    
+    // Check for market positioning details
+    const hasMarketPositioning = competitorText.includes('market share') || 
+                                competitorText.includes('enterprise focus') || 
+                                competitorText.includes('smb focus') ||
+                                competitorText.includes('mid-market');
+    
     // Check if competitors have specific names (not generic descriptions)
     const hasSpecificNames = result.competitorIntelligence.some((comp: any) => 
       comp.name && 
       comp.name.length > 3 && 
       !comp.name.toLowerCase().includes('competitor') &&
-      !comp.name.toLowerCase().includes('company')
+      !comp.name.toLowerCase().includes('company') &&
+      !comp.name.toLowerCase().includes('solution')
     );
 
-    return hasSpecificNames;
+    return (hasRealCompanies || hasSpecificNames) && (hasFinancialData || hasMarketPositioning);
   }
 
   private hasActionableRecommendations(result: MarketMapperOutput): boolean {
     if (!result.recommendations || result.recommendations.length === 0) return false;
 
-    // Check if recommendations have specific actions and timelines
-    const actionableCount = result.recommendations.filter(rec => 
+    const recText = JSON.stringify(result.recommendations).toLowerCase();
+    
+    // Check for vague/generic phrases that indicate non-actionable advice
+    const vagueIndicators = [
+      'conduct research', 'validate your idea', 'talk to customers', 'build an mvp',
+      'create a landing page', 'get feedback', 'iterate on your product',
+      'focus on user experience', 'build a strong team', 'raise funding'
+    ];
+    
+    const vaguePhraseCount = vagueIndicators.filter(phrase => recText.includes(phrase)).length;
+    
+    // Check for specific, actionable indicators
+    const specificIndicators = [
+      'within', 'by', 'using', 'implement', 'integrate with', 'partner with',
+      'price at $', 'target', 'budget', 'hire', 'launch in', 'test',
+      'measure', 'track', 'optimize', 'a/b test', 'segment'
+    ];
+    
+    const specificCount = specificIndicators.filter(phrase => recText.includes(phrase)).length;
+    
+    // Check if recommendations have specific actions and details
+    const detailedCount = result.recommendations.filter(rec => 
       rec.action && 
-      rec.action.length > 20 && // Substantial detail
-      rec.timeline && // Has timeline
-      rec.resources && rec.resources.length > 0 // Has resource requirements
+      rec.action.length > 30 && // Substantial detail
+      (rec.timeline || rec.resources?.length > 0 || rec.expectedOutcome) // Has supporting details
     ).length;
 
-    return actionableCount >= Math.ceil(result.recommendations.length * 0.7); // 70% should be actionable
+    // Must have more specific than vague indicators, and at least 70% detailed recommendations
+    return specificCount > vaguePhraseCount && 
+           detailedCount >= Math.ceil(result.recommendations.length * 0.7);
   }
 
   private hasRealisticTimelines(result: MarketMapperOutput, input: MarketMapperInput): boolean {

@@ -52,33 +52,34 @@ export function MarketMapperResults({
       rawExecutiveSummary !== null
     ) {
       const execSummary = rawExecutiveSummary;
-      norm.executiveSummary = `${execSummary.overview || ""}
+      norm.executiveSummary = `${execSummary.overview || "No overview provided"}
 
 **Key Findings:**
 ${
-  execSummary.keyFindings
-    ?.map((finding: string) => `• ${finding}`)
-    .join("\n") || ""
+  execSummary.keyFindings && execSummary.keyFindings.length > 0
+    ? execSummary.keyFindings.map((finding: string) => `• ${finding}`).join("\n")
+    : "• No specific key findings provided"
 }
 
 **Market Opportunity:** ${
-  typeof execSummary.marketOpportunity === 'object' && execSummary.marketOpportunity !== null
-    ? `Market size: ${execSummary.marketOpportunity.size || 'Unknown'}, Growth potential: ${execSummary.marketOpportunity.growth || 'Unknown'}`
-    : execSummary.marketOpportunity || ""
-}
+        execSummary.marketOpportunity && execSummary.marketOpportunity.trim() !== ""
+          ? execSummary.marketOpportunity
+          : "Market opportunity analysis not available"
+      }
 
 **Competitive Landscape:** ${
-  typeof execSummary.competitiveLandscape === 'object' && execSummary.competitiveLandscape !== null
-    ? JSON.stringify(execSummary.competitiveLandscape).replace(/[{}]/g, '').replace(/"/g, '').replace(/,/g, ', ')
-    : execSummary.competitiveLandscape || ""
-}
+        execSummary.competitiveLandscape && execSummary.competitiveLandscape.trim() !== ""
+          ? execSummary.competitiveLandscape
+          : "Competitive landscape analysis not available"
+      }
 
 **Investment Readiness:** ${
-        execSummary.investmentReadiness?.replace("_", " ").toUpperCase() ||
-        "Not assessed"
+        execSummary.investmentReadiness
+          ? execSummary.investmentReadiness.replace("_", " ").toUpperCase()
+          : "Not assessed"
       }`;
     } else {
-      norm.executiveSummary = rawExecutiveSummary;
+      norm.executiveSummary = rawExecutiveSummary || "Executive summary not available";
     }
 
     // Target Audience - handle UPPERCASE and different field names
