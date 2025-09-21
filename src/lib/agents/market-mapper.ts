@@ -1148,9 +1148,15 @@ export class MarketMapperAgent extends BaseAgent<MarketMapperInput, MarketMapper
   }
 
   private hasRealCompetitorData(result: MarketMapperOutput): boolean {
-    if (!result.competitorIntelligence || result.competitorIntelligence.length === 0) return false;
+    // Handle case where competitorIntelligence might not be an array
+    const competitors = result.competitorIntelligence;
+    if (!competitors) return false;
+    
+    // Convert to array if it's not already
+    const competitorArray = Array.isArray(competitors) ? competitors : [];
+    if (competitorArray.length === 0) return false;
 
-    const competitorText = JSON.stringify(result.competitorIntelligence).toLowerCase();
+    const competitorText = JSON.stringify(competitors).toLowerCase();
     const executiveSummary = JSON.stringify(result.executiveSummary || {}).toLowerCase();
     
     // Known real company indicators (comprehensive list)
@@ -1181,8 +1187,8 @@ export class MarketMapperAgent extends BaseAgent<MarketMapperInput, MarketMapper
                                 competitorText.includes('smb focus') ||
                                 competitorText.includes('mid-market');
     
-    // Check if competitors have specific names (not generic descriptions)
-    const hasSpecificNames = result.competitorIntelligence.some((comp: any) => 
+    // Check if competitors have specific names (not generic descriptions) - safely handle array
+    const hasSpecificNames = competitorArray.some((comp: any) => 
       comp.name && 
       comp.name.length > 3 && 
       !comp.name.toLowerCase().includes('competitor') &&
@@ -1194,9 +1200,15 @@ export class MarketMapperAgent extends BaseAgent<MarketMapperInput, MarketMapper
   }
 
   private hasActionableRecommendations(result: MarketMapperOutput): boolean {
-    if (!result.recommendations || result.recommendations.length === 0) return false;
+    // Handle case where recommendations might not be an array
+    const recommendations = result.recommendations;
+    if (!recommendations) return false;
+    
+    // Convert to array if it's not already
+    const recArray = Array.isArray(recommendations) ? recommendations : [];
+    if (recArray.length === 0) return false;
 
-    const recText = JSON.stringify(result.recommendations).toLowerCase();
+    const recText = JSON.stringify(recommendations).toLowerCase();
     
     // Check for vague/generic phrases that indicate non-actionable advice
     const vagueIndicators = [
@@ -1216,8 +1228,8 @@ export class MarketMapperAgent extends BaseAgent<MarketMapperInput, MarketMapper
     
     const specificCount = specificIndicators.filter(phrase => recText.includes(phrase)).length;
     
-    // Check if recommendations have specific actions and details
-    const detailedCount = result.recommendations.filter(rec => 
+    // Check if recommendations have specific actions and details - use safe array
+    const detailedCount = recArray.filter(rec => 
       rec.action && 
       rec.action.length > 30 && // Substantial detail
       (rec.timeline || rec.resources?.length > 0 || rec.expectedOutcome) // Has supporting details
@@ -1225,11 +1237,16 @@ export class MarketMapperAgent extends BaseAgent<MarketMapperInput, MarketMapper
 
     // Must have more specific than vague indicators, and at least 70% detailed recommendations
     return specificCount > vaguePhraseCount && 
-           detailedCount >= Math.ceil(result.recommendations.length * 0.7);
+           detailedCount >= Math.ceil(recArray.length * 0.7);
   }
 
   private hasRealisticTimelines(result: MarketMapperOutput, input: MarketMapperInput): boolean {
-    if (!result.recommendations) return true; // Skip if no recommendations
+    // Handle case where recommendations might not be an array
+    const recommendations = result.recommendations;
+    if (!recommendations) return true; // Skip if no recommendations
+    
+    const recArray = Array.isArray(recommendations) ? recommendations : [];
+    if (recArray.length === 0) return true; // Skip if empty
 
     const industry = input.industry || this.inferIndustry(input.businessIdea);
     
@@ -1245,8 +1262,8 @@ export class MarketMapperAgent extends BaseAgent<MarketMapperInput, MarketMapper
 
     const minExpected = minimumTimelines[industry as keyof typeof minimumTimelines] || minimumTimelines.default;
     
-    // Check if any timeline mentions unrealistically short periods for complex tasks
-    const hasRealisticTimelines = result.recommendations.every(rec => {
+    // Check if any timeline mentions unrealistically short periods for complex tasks - use safe array
+    const hasRealisticTimelines = recArray.every(rec => {
       if (!rec.timeline) return true;
       
       const timelineText = rec.timeline.toLowerCase();

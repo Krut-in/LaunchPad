@@ -57,18 +57,22 @@ export function MarketMapperResults({
 **Key Findings:**
 ${
   execSummary.keyFindings && execSummary.keyFindings.length > 0
-    ? execSummary.keyFindings.map((finding: string) => `• ${finding}`).join("\n")
+    ? execSummary.keyFindings
+        .map((finding: string) => `• ${finding}`)
+        .join("\n")
     : "• No specific key findings provided"
 }
 
 **Market Opportunity:** ${
-        execSummary.marketOpportunity && execSummary.marketOpportunity.trim() !== ""
+        execSummary.marketOpportunity &&
+        execSummary.marketOpportunity.trim() !== ""
           ? execSummary.marketOpportunity
           : "Market opportunity analysis not available"
       }
 
 **Competitive Landscape:** ${
-        execSummary.competitiveLandscape && execSummary.competitiveLandscape.trim() !== ""
+        execSummary.competitiveLandscape &&
+        execSummary.competitiveLandscape.trim() !== ""
           ? execSummary.competitiveLandscape
           : "Competitive landscape analysis not available"
       }
@@ -79,7 +83,8 @@ ${
           : "Not assessed"
       }`;
     } else {
-      norm.executiveSummary = rawExecutiveSummary || "Executive summary not available";
+      norm.executiveSummary =
+        rawExecutiveSummary || "Executive summary not available";
     }
 
     // Target Audience - handle UPPERCASE and different field names
