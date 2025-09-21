@@ -1,23 +1,43 @@
+/**
+ * MARKET MAPPER API ROUTE
+ * 
+ * Purpose: Handles AI-powered market analysis requests for startup ideas
+ * Contains: Authentication, input validation, mock data generation, and AI agent orchestration
+ * Requirements: Processes business ideas through multi-mode analysis (questions, deep analysis, strategy)
+ * Dependencies: NextAuth for auth, MarketMapperAgent for AI processing, utility functions for responses
+ */
+
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth/config'
 import { MarketMapperAgent, MarketMapperInput, MarketMapperOutput } from '@/lib/agents/market-mapper'
 import { createApiResponse, getErrorMessage } from '@/lib/utils'
 
+/**
+ * Generates mock market analysis data for development and testing
+ * @param {MarketMapperInput} input - User's business idea and analysis preferences
+ * @returns {MarketMapperOutput} Structured mock analysis with questions or recommendations
+ * 
+ * Purpose: Provides consistent, realistic sample data without AI API calls
+ * Logic: Creates different response types based on processingMode (questions vs analysis)
+ * Edge cases: Uses consistent timestamp to prevent hydration mismatches in SSR
+ */
 function generateMockResponse(input: MarketMapperInput): MarketMapperOutput {
-  // Use a consistent timestamp for SSR/client consistency
+  // Use a consistent timestamp for SSR/client consistency (prevents hydration errors)
   const consistentTimestamp = new Date('2024-01-01T00:00:00Z')
+  // Base response structure with metadata and source attribution
   const mockResponse: MarketMapperOutput = {
-    analysisId: `mock-analysis-${input.businessIdea.slice(0, 10).replace(/\s+/g, '-').toLowerCase()}`,
+    analysisId: `mock-analysis-${input.businessIdea.slice(0, 10).replace(/\s+/g, '-').toLowerCase()}`, // Generate deterministic ID
     timestamp: consistentTimestamp,
     processingMode: input.processingMode,
     researchDepth: input.researchDepth || 'basic',
-    confidenceScore: 0.8,
+    confidenceScore: 0.8, // Mock confidence score for realistic UX
     dataSources: [
       { source: 'Mock Data', type: 'manual_research', reliability: 0.8 }
     ]
   }
 
+  // Branch logic: Generate different content based on processing mode
   if (input.processingMode === 'questions') {
     mockResponse.questions = [
       {
@@ -109,8 +129,25 @@ function generateMockResponse(input: MarketMapperInput): MarketMapperOutput {
   }
 }
 
+/**
+ * Handles POST requests for market analysis
+ * @param {NextRequest} request - Next.js request object containing business idea data
+ * @returns {NextResponse} JSON response with analysis results or error message
+ * 
+ * Purpose: Main API endpoint for processing market analysis requests
+ * Authentication: Requires valid NextAuth session
+ * Processing modes: 'questions' (generates clarification questions) or 'deep_analysis' (full analysis)
+ * Data sources: Uses real AI analysis via OpenAI or mock data based on environment variable
+ * 
+ * Complex logic: 
+ * 1. Validates user authentication and input data
+ * 2. Chooses between mock data (development) or AI analysis (production)
+ * 3. Processes business idea through MarketMapperAgent
+ * 4. Returns structured analysis with recommendations
+ */
 export async function POST(request: NextRequest) {
   try {
+    // Verify user authentication - all analysis requests require login
     const session = await getServerSession(authOptions)
     
     if (!session?.user?.id) {
@@ -122,23 +159,24 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     
-    // Validate input
+    // Parse and validate input data with sensible defaults
     const input: MarketMapperInput = {
       businessIdea: body.businessIdea,
       industry: body.industry,
       targetMarket: body.targetMarket,
-      answers: body.answers,
-      processingMode: body.processingMode || 'discovery',
-      researchDepth: body.researchDepth || 'basic',
-      competitorLimit: body.competitorLimit || 10,
-      includeWebResearch: body.includeWebResearch !== false,
-      includeSentimentAnalysis: body.includeSentimentAnalysis !== false,
-      targetGeography: body.targetGeography,
-      budgetRange: body.budgetRange,
-      timeHorizon: body.timeHorizon,
-      existingCompetitors: body.existingCompetitors,
+      answers: body.answers, // User responses to clarification questions
+      processingMode: body.processingMode || 'discovery', // Default to discovery mode
+      researchDepth: body.researchDepth || 'basic', // Basic analysis unless specified
+      competitorLimit: body.competitorLimit || 10, // Limit competitor research scope
+      includeWebResearch: body.includeWebResearch !== false, // Default to true (opt-out)
+      includeSentimentAnalysis: body.includeSentimentAnalysis !== false, // Default to true
+      targetGeography: body.targetGeography, // Optional geographic focus
+      budgetRange: body.budgetRange, // Optional budget constraints
+      timeHorizon: body.timeHorizon, // Optional timeline for market entry
+      existingCompetitors: body.existingCompetitors, // User-provided competitor list
     }
 
+    // Validate minimum business idea length for meaningful analysis
     if (!input.businessIdea || input.businessIdea.length < 10) {
       return NextResponse.json(
         createApiResponse(false, null, null, 'Business idea must be at least 10 characters'),
@@ -146,21 +184,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Use real AI analysis by default, only use mock data when explicitly requested
+    // Determine data source: AI analysis (production) vs mock data (development/testing)
     const useMockData = process.env.USE_MOCK_DATA === 'true'
 
     let result
     
     if (useMockData) {
-      // Use mock data only when explicitly requested via environment variable
+      // Development mode: Use mock data to avoid API costs and enable offline development
       console.log('Using mock data (USE_MOCK_DATA=true)')
       result = generateMockResponse(input)
     } else {
-      // Initialize Market Mapper agent for real AI analysis
+      // Production mode: Use real AI analysis with OpenAI for authentic insights
       console.log('Using real AI analysis with OpenAI')
       const marketMapper = new MarketMapperAgent()
       
-      // Process the analysis with your sophisticated framework
+      // Process through sophisticated AI framework with multi-source research
       result = await marketMapper.processInput(input)
     }
     

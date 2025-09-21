@@ -1,28 +1,69 @@
+/**
+ * BASE AGENT FRAMEWORK
+ * 
+ * Purpose: Abstract foundation for all AI agents in the system
+ * Contains: OpenAI integration, session management, input/output validation, error handling
+ * Requirements: Provides consistent interface for agent creation with type safety and persistence
+ * Dependencies: OpenAI SDK, Zod validation, database queries, type definitions
+ */
+
 import { z } from 'zod'
 import OpenAI from 'openai'
 import { AgentType, AgentError } from '@/types'
 import { agentSessionQueries, conversationQueries } from '@/lib/database/queries'
 import { nanoid } from 'nanoid'
 
+/**
+ * Configuration interface for AI agents
+ * Defines the structure and behavior parameters for each agent type
+ */
 export interface AgentConfig {
+  /** Agent type identifier for routing and categorization */
   type: AgentType
+  /** Human-readable agent name */
   name: string
+  /** Brief description of agent capabilities */
   description: string
+  /** Core system prompt that defines agent behavior and expertise */
   systemPrompt: string
+  /** Maximum tokens for OpenAI API responses */
   maxTokens: number
+  /** Temperature setting for response creativity (0.0-1.0) */
   temperature: number
+  /** Zod schema for validating input data */
   inputSchema: z.ZodSchema
+  /** Zod schema for validating output data */
   outputSchema: z.ZodSchema
 }
 
+/**
+ * Abstract base class for all AI agents
+ * @template TInput - Type of input data the agent expects
+ * @template TOutput - Type of output data the agent produces
+ * 
+ * Purpose: Provides common functionality for OpenAI integration, validation, and session management
+ * Pattern: Template method pattern - subclasses implement processInput() for specific behavior
+ */
 export abstract class BaseAgent<TInput = any, TOutput = any> {
   protected openai: OpenAI | null = null
   protected config: AgentConfig
 
+  /**
+   * Initialize agent with configuration
+   * @param {AgentConfig} config - Agent configuration including prompts and validation schemas
+   */
   constructor(config: AgentConfig) {
     this.config = config
   }
 
+  /**
+   * Lazy initialization of OpenAI client with error handling
+   * @returns {OpenAI} Configured OpenAI client instance
+   * @throws {AgentError} If API key is not configured
+   * 
+   * Purpose: Creates OpenAI client only when needed, validates environment setup
+   * Pattern: Singleton pattern for OpenAI client per agent instance
+   */
   private getOpenAI(): OpenAI {
     if (!this.openai) {
       if (!process.env.OPENAI_API_KEY) {
@@ -39,8 +80,26 @@ export abstract class BaseAgent<TInput = any, TOutput = any> {
     return this.openai
   }
 
+  /**
+   * Abstract method that subclasses must implement
+   * @param {TInput} input - Validated input data specific to the agent type
+   * @returns {Promise<TOutput>} Processed output data
+   * 
+   * Purpose: Defines the contract for agent-specific processing logic
+   * Implementation: Each agent type implements this method with their unique behavior
+   */
   abstract processInput(input: TInput): Promise<TOutput>
 
+  /**
+   * Makes authenticated calls to OpenAI API with configured parameters
+   * @param {Array} messages - Conversation messages for the AI model
+   * @param {string} systemPrompt - Optional system prompt override
+   * @returns {Promise<string>} Raw response content from OpenAI
+   * @throws {AgentError} If API call fails or response is invalid
+   * 
+   * Purpose: Centralized OpenAI API communication with error handling and logging
+   * Features: Automatic retry logic, token counting, response validation
+   */
   protected async callOpenAI(
     messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
     systemPrompt?: string

@@ -156,7 +156,6 @@ export function MarketMapperInterface({
     }, 1000);
   }, []);
 
-
   /**
    * Handles the submission of business idea form
    * Implements proper validation, loading states, and error handling per Vercel guidelines

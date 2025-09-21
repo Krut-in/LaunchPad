@@ -1,41 +1,95 @@
+/**
+ * WEB SCRAPING SERVICE
+ * 
+ * Purpose: Extracts market data from competitor websites, review platforms, and social media
+ * Contains: Rate-limited scraping, content parsing, data caching, and competitor intelligence
+ * Requirements: Provides structured data extraction while respecting robots.txt and rate limits
+ * Dependencies: Zod for validation, built-in fetch for HTTP requests, caching mechanisms
+ */
+
 import { z } from 'zod'
 
+/**
+ * Configuration interface for web scraping operations
+ * Controls scraping behavior, rate limiting, and compliance settings
+ */
 export interface ScrapingConfig {
+  /** Maximum number of pages to scrape per domain */
   maxPages: number
+  /** Request timeout in milliseconds */
   timeout: number
+  /** Whether to respect robots.txt directives */
   respectRobots: boolean
+  /** User agent string for HTTP requests */
   userAgent: string
-  rateLimit: number // milliseconds between requests
+  /** Minimum delay between requests in milliseconds (rate limiting) */
+  rateLimit: number
 }
 
+/**
+ * Generic scraped data structure for any web content
+ * Standardized format for all scraped information
+ */
 export interface ScrapedData {
+  /** Original URL that was scraped */
   url: string
+  /** Page title or heading */
   title: string
+  /** Extracted text content */
   content: string
+  /** Additional metadata (og tags, schema.org data, etc.) */
   metadata: Record<string, any>
+  /** When the data was scraped */
   timestamp: Date
+  /** Reliability score of the extracted data (0-1) */
   confidence: number
 }
 
+/**
+ * Structured competitor data extracted from company websites
+ * Focused on business intelligence and competitive analysis
+ */
 export interface CompetitorWebData {
+  /** Company name */
   company: string
+  /** Primary website URL */
   website: string
+  /** Company description/value proposition */
   description: string
+  /** List of key features or services */
   features: string[]
+  /** Pricing information (plans, tiers, etc.) */
   pricing: string[]
+  /** Customer testimonials and reviews */
   testimonials: string[]
+  /** Estimated team size */
   teamSize: number
+  /** Year company was founded */
   foundingYear: number
+  /** Social media and other relevant links */
   socialLinks: Record<string, string>
+  /** Recent news or press releases */
   recentNews: string[]
+  /** Data reliability score (0-1) */
   confidence: number
 }
 
+/**
+ * Web scraping service with rate limiting, caching, and ethical compliance
+ * 
+ * Purpose: Extracts competitor intelligence and market data from web sources
+ * Features: Respects robots.txt, implements rate limiting, caches results
+ * Use cases: Competitor analysis, market research, pricing intelligence
+ */
 export class WebScrapingService {
   private config: ScrapingConfig
   private cache: Map<string, { data: any; expiry: number }> = new Map()
   private rateLimiter: Map<string, number> = new Map()
 
+  /**
+   * Initialize web scraping service with configuration
+   * @param {Partial<ScrapingConfig>} config - Scraping configuration options
+   */
   constructor(config: Partial<ScrapingConfig> = {}) {
     this.config = {
       maxPages: 10,

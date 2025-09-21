@@ -1,3 +1,12 @@
+/**
+ * MARKET MAPPER RESULTS COMPONENT
+ * 
+ * Purpose: Displays comprehensive market analysis results in a structured, readable format
+ * Contains: Executive summary, recommendations, competitor analysis, and action items
+ * Requirements: Transforms AI-generated analysis into user-friendly presentation with export capabilities
+ * Dependencies: UI components from shadcn/ui, Lucide icons, MarketMapperOutput type definitions
+ */
+
 "use client";
 
 import {
@@ -22,9 +31,15 @@ import {
   Edit,
 } from "lucide-react";
 
+/**
+ * Props for the MarketMapperResults component
+ */
 interface MarketMapperResultsProps {
+  /** Market analysis results from AI processing */
   results: MarketMapperOutput;
+  /** Callback to edit the analysis parameters */
   onEdit?: () => void;
+  /** Callback to regenerate the analysis with same parameters */
   onRegenerate?: () => void;
 }
 
