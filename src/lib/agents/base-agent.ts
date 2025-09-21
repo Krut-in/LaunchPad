@@ -62,12 +62,21 @@ export abstract class BaseAgent<TInput = any, TOutput = any> {
         content: msg.content
       })))
 
-      const response = await this.getOpenAI().chat.completions.create({
-        model: 'gpt-5',
-        max_tokens: this.config.maxTokens,
-        temperature: this.config.temperature,
+      const model = process.env.OPENAI_MODEL || 'gpt-5-mini'
+      const requestPayload: any = {
+        model,
         messages: openaiMessages,
-      })
+      }
+
+      if (model.startsWith('gpt-5')) {
+        requestPayload.max_completion_tokens = this.config.maxTokens
+        // GPT-5 models only support temperature = 1 (default), so we omit it
+      } else {
+        requestPayload.max_tokens = this.config.maxTokens
+        requestPayload.temperature = this.config.temperature
+      }
+
+      const response = await this.getOpenAI().chat.completions.create(requestPayload)
 
       const content = response.choices[0]?.message?.content
       if (!content) {

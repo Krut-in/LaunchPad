@@ -43,46 +43,72 @@ interface Question {
 interface MarketMapperInterfaceProps {
   onAnalyze: (input: MarketMapperInput) => Promise<MarketMapperOutput>;
   isLoading?: boolean;
+  savedFormData?: {
+    businessIdea: string;
+    industry?: string;
+    targetMarket?: string;
+    questions: any[];
+    answers: Record<string, string>;
+  } | null;
 }
 
 export function MarketMapperInterface({
   onAnalyze,
   isLoading = false,
+  savedFormData,
 }: MarketMapperInterfaceProps) {
-  const [businessIdea, setBusinessIdea] = useState("");
-  const [industry, setIndustry] = useState("");
-  const [targetMarket, setTargetMarket] = useState("");
+  const [businessIdea, setBusinessIdea] = useState(
+    savedFormData?.businessIdea || ""
+  );
+  const [industry, setIndustry] = useState(savedFormData?.industry || "");
+  const [targetMarket, setTargetMarket] = useState(
+    savedFormData?.targetMarket || ""
+  );
   const [currentStep, setCurrentStep] = useState<
     "idea" | "questions" | "analysis"
-  >("idea");
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-   const [analysisResults, setAnalysisResults] =
-     useState<MarketMapperOutput | null>(null);
-   const [error, setError] = useState<string | null>(null);
+  >(savedFormData?.questions ? "questions" : "idea");
+  const [questions, setQuestions] = useState<Question[]>(
+    savedFormData?.questions?.map(q => ({
+      ...q,
+      answered: !!savedFormData.answers[q.id],
+    })) || []
+  );
+  const [answers, setAnswers] = useState<Record<string, string>>(
+    savedFormData?.answers || {}
+  );
+  const [analysisResults, setAnalysisResults] =
+    useState<MarketMapperOutput | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-   const handleIdeaSubmit = async () => {
-     if (!businessIdea.trim()) return;
+  const handleIdeaSubmit = async () => {
+    if (!businessIdea.trim()) return;
 
-     setError(null);
-     try {
-       const input: MarketMapperInput = {
-         businessIdea,
-         industry: industry || undefined,
-         targetMarket: targetMarket || undefined,
-         analysisMode: "questions",
-       };
+    if (businessIdea.trim().length < 10) {
+      setError("Business idea must be at least 10 characters");
+      return;
+    }
 
-       const result = await onAnalyze(input);
-       if (result.questions) {
-         setQuestions(result.questions.map(q => ({ ...q, answered: false })));
-         setCurrentStep("questions");
-       }
-     } catch (error) {
-       console.error("Error generating questions:", error);
-       setError(error instanceof Error ? error.message : "Failed to generate questions");
-     }
-   };
+    setError(null);
+    try {
+      const input: MarketMapperInput = {
+        businessIdea,
+        industry: industry || undefined,
+        targetMarket: targetMarket || undefined,
+        analysisMode: "questions",
+      };
+
+      const result = await onAnalyze(input);
+      if (result.questions) {
+        setQuestions(result.questions.map(q => ({ ...q, answered: false })));
+        setCurrentStep("questions");
+      }
+    } catch (error) {
+      console.error("Error generating questions:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to generate questions"
+      );
+    }
+  };
 
   const handleAnswerChange = (questionId: string, answer: string) => {
     setAnswers(prev => ({ ...prev, [questionId]: answer }));
@@ -95,25 +121,27 @@ export function MarketMapperInterface({
     );
   };
 
-   const handleAnalyze = async () => {
-     setError(null);
-     try {
-       const input: MarketMapperInput = {
-         businessIdea,
-         industry: industry || undefined,
-         targetMarket: targetMarket || undefined,
-         answers,
-         analysisMode: "analysis",
-       };
+  const handleAnalyze = async () => {
+    setError(null);
+    try {
+      const input: MarketMapperInput = {
+        businessIdea,
+        industry: industry || undefined,
+        targetMarket: targetMarket || undefined,
+        answers,
+        analysisMode: "analysis",
+      };
 
-       const result = await onAnalyze(input);
-       setAnalysisResults(result);
-       setCurrentStep("analysis");
-     } catch (error) {
-       console.error("Error performing analysis:", error);
-       setError(error instanceof Error ? error.message : "Failed to perform analysis");
-     }
-   };
+      const result = await onAnalyze(input);
+      setAnalysisResults(result);
+      setCurrentStep("analysis");
+    } catch (error) {
+      console.error("Error performing analysis:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to perform analysis"
+      );
+    }
+  };
 
   const getProgress = () => {
     const totalQuestions = questions.length;
@@ -127,13 +155,13 @@ export function MarketMapperInterface({
     return answeredRequired.length === requiredQuestions.length;
   };
 
-   const resetFlow = () => {
-     setCurrentStep("idea");
-     setQuestions([]);
-     setAnswers({});
-     setAnalysisResults(null);
-     setError(null);
-   };
+  const resetFlow = () => {
+    setCurrentStep("idea");
+    setQuestions([]);
+    setAnswers({});
+    setAnalysisResults(null);
+    setError(null);
+  };
 
   if (currentStep === "idea") {
     return (
@@ -153,9 +181,7 @@ export function MarketMapperInterface({
           {error && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {error}
-              </AlertDescription>
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
           <div>
@@ -173,6 +199,18 @@ export function MarketMapperInterface({
               rows={4}
               className="w-full"
             />
+            <div className="flex justify-between items-center mt-1">
+              <div
+                className={`text-xs ${
+                  businessIdea.length < 10 ? "text-red-500" : "text-gray-500"
+                }`}
+              >
+                {businessIdea.length < 10
+                  ? `${10 - businessIdea.length} more characters needed`
+                  : `${businessIdea.length} characters`}
+              </div>
+              <div className="text-xs text-gray-400">Minimum 10 characters</div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -209,12 +247,40 @@ export function MarketMapperInterface({
 
           <Button
             onClick={handleIdeaSubmit}
-            disabled={!businessIdea.trim() || isLoading}
+            disabled={
+              !businessIdea.trim() ||
+              businessIdea.trim().length < 10 ||
+              isLoading
+            }
             className="w-full"
           >
-            {isLoading ? "Analyzing..." : "Generate Clarification Questions"}
-            <ArrowRight className="ml-2 h-4 w-4" />
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                AI is analyzing your idea...
+              </>
+            ) : (
+              <>
+                Generate Clarification Questions
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </>
+            )}
           </Button>
+
+          {isLoading && (
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-center gap-3">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                <div className="text-sm text-blue-800">
+                  <p className="font-medium">AI Agent is working...</p>
+                  <p className="text-blue-600">
+                    Generating personalized questions based on your business
+                    idea
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     );
@@ -253,9 +319,7 @@ export function MarketMapperInterface({
         {error && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              {error}
-            </AlertDescription>
+            <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
@@ -326,10 +390,56 @@ export function MarketMapperInterface({
                 disabled={!canProceedToAnalysis() || isLoading}
                 size="lg"
               >
-                {isLoading ? "Analyzing Market..." : "Generate Market Analysis"}
-                <ArrowRight className="ml-2 h-4 w-4" />
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    AI is analyzing market...
+                  </>
+                ) : (
+                  <>
+                    Generate Market Analysis
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
               </Button>
             </div>
+
+            {isLoading && (
+              <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                <div className="flex items-center gap-3">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                  <div className="text-sm">
+                    <p className="font-medium text-blue-900">
+                      Market Mapper AI is working hard...
+                    </p>
+                    <p className="text-blue-700">
+                      Analyzing market trends, competitors, and opportunities
+                      based on your responses
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 space-y-1">
+                  <div className="flex items-center gap-2 text-xs text-blue-600">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+                    Processing your business insights
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-blue-600">
+                    <div
+                      className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"
+                      style={{ animationDelay: "0.5s" }}
+                    ></div>
+                    Researching market opportunities
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-blue-600">
+                    <div
+                      className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"
+                      style={{ animationDelay: "1s" }}
+                    ></div>
+                    Generating strategic recommendations
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

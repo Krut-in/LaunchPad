@@ -19,13 +19,39 @@ export function MarketMapperComplete({
 }: MarketMapperCompleteProps) {
   const [results, setResults] = useState<MarketMapperOutput | null>(null);
   const [showResults, setShowResults] = useState(false);
+  const [savedFormData, setSavedFormData] = useState<{
+    businessIdea: string;
+    industry?: string;
+    targetMarket?: string;
+    questions: any[];
+    answers: Record<string, string>;
+  } | null>(null);
 
   const handleAnalyze = async (
     input: MarketMapperInput
   ): Promise<MarketMapperOutput> => {
     const result = await onAnalyze(input);
 
-    if (input.analysisMode === "analysis") {
+    // Save form data when we get questions or do analysis
+    if (input.analysisMode === "questions" && result.questions) {
+      setSavedFormData({
+        businessIdea: input.businessIdea,
+        industry: input.industry,
+        targetMarket: input.targetMarket,
+        questions: result.questions,
+        answers: {},
+      });
+    } else if (input.analysisMode === "analysis") {
+      // Update saved form data with answers
+      setSavedFormData(prev =>
+        prev
+          ? {
+              ...prev,
+              answers: input.answers || {},
+            }
+          : null
+      );
+
       setResults(result);
       setShowResults(true);
     }
@@ -34,8 +60,9 @@ export function MarketMapperComplete({
   };
 
   const handleEdit = () => {
+    // Go back to questions step, not the main business idea step
     setShowResults(false);
-    setResults(null);
+    // Keep results and savedFormData so user can return to questions
   };
 
   const handleRegenerate = async () => {
@@ -56,6 +83,10 @@ export function MarketMapperComplete({
   }
 
   return (
-    <MarketMapperInterface onAnalyze={handleAnalyze} isLoading={isLoading} />
+    <MarketMapperInterface
+      onAnalyze={handleAnalyze}
+      isLoading={isLoading}
+      savedFormData={savedFormData}
+    />
   );
 }
