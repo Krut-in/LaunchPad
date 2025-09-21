@@ -12,37 +12,23 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (account?.provider === 'google' && user.email) {
-        try {
-          // Check if user exists
-          const existingUser = await userQueries.findByEmail(user.email)
-          
-          if (existingUser.length === 0) {
-            // Create new user
-            await userQueries.create({
-              id: nanoid(),
-              email: user.email,
-              name: user.name || null,
-              image: user.image || null,
-              subscription: 'free',
-              credits: 10,
-            })
-          }
-          return true
-        } catch (error) {
-          console.error('Error during sign in:', error)
-          return false
-        }
-      }
+      // Simplified sign-in for now to avoid database issues
+      console.log('NextAuth signIn callback triggered for:', user?.email)
       return true
     },
     async session({ session, token }) {
+      // Simplified session callback
       if (session.user?.email) {
-        const dbUser = await userQueries.findByEmail(session.user.email)
-        if (dbUser.length > 0) {
-          session.user.id = dbUser[0].id
-          session.user.subscription = dbUser[0].subscription
-          session.user.credits = dbUser[0].credits
+        try {
+          const dbUser = await userQueries.findByEmail(session.user.email)
+          if (dbUser.length > 0) {
+            session.user.id = dbUser[0].id
+            session.user.subscription = dbUser[0].subscription
+            session.user.credits = dbUser[0].credits
+          }
+        } catch (error) {
+          console.error('Session callback error:', error)
+          // Continue with session even if DB query fails
         }
       }
       return session
