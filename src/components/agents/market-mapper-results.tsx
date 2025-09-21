@@ -38,13 +38,30 @@ export function MarketMapperResults({
     if (!raw || typeof raw !== "object") return raw;
     const norm: any = {};
 
-    // Executive Summary - handle UPPERCASE keys
-    norm.executiveSummary =
+    // Executive Summary - handle both object and string formats
+    const rawExecutiveSummary = 
       raw.executiveSummary ||
       raw.executive_summary ||
       raw.EXECUTIVE_SUMMARY ||
       raw.summary ||
       "";
+    
+    // Handle enhanced object format vs legacy string format
+    if (typeof rawExecutiveSummary === 'object' && rawExecutiveSummary !== null) {
+      const execSummary = rawExecutiveSummary;
+      norm.executiveSummary = `${execSummary.overview || ''}
+
+**Key Findings:**
+${execSummary.keyFindings?.map((finding: string) => `• ${finding}`).join('\n') || ''}
+
+**Market Opportunity:** ${execSummary.marketOpportunity || ''}
+
+**Competitive Landscape:** ${execSummary.competitiveLandscape || ''}
+
+**Investment Readiness:** ${execSummary.investmentReadiness?.replace('_', ' ').toUpperCase() || 'Not assessed'}`;
+    } else {
+      norm.executiveSummary = rawExecutiveSummary;
+    }
 
     // Target Audience - handle UPPERCASE and different field names
     const ta =
@@ -114,24 +131,40 @@ export function MarketMapperResults({
         }
       : undefined;
 
-    // Recommendations - handle UPPERCASE and numeric priorities
+    // Recommendations - handle both enhanced object format and legacy format
     const rec =
       raw.recommendations ||
       raw.strategic_recommendations ||
       raw.RECOMMENDATIONS;
     norm.recommendations = Array.isArray(rec)
-      ? rec.map((r: any) => ({
-          action: r.action || r.title || "",
-          priority:
-            typeof r.priority === "number"
-              ? r.priority <= 2
-                ? "high"
-                : r.priority <= 3
-                ? "medium"
-                : "low"
-              : (r.priority || "medium").toString().toLowerCase(),
-          reasoning: r.reasoning || r.why || "",
-        }))
+      ? rec.map((r: any) => {
+          // Handle enhanced format with more details
+          if (r.category && r.timeline && r.resources) {
+            return {
+              action: r.action || r.title || "",
+              priority: r.priority?.toLowerCase() || "medium",
+              reasoning: r.reasoning || r.rationale || "",
+              category: r.category || "general",
+              timeline: r.timeline || "",
+              resources: r.resources || [],
+              expectedOutcome: r.expectedOutcome || "",
+              successMetrics: r.successMetrics || [],
+            };
+          }
+          // Handle legacy format
+          return {
+            action: r.action || r.title || "",
+            priority:
+              typeof r.priority === "number"
+                ? r.priority <= 2
+                  ? "high"
+                  : r.priority <= 3
+                  ? "medium"
+                  : "low"
+                : (r.priority || "medium").toString().toLowerCase(),
+            reasoning: r.reasoning || r.why || "",
+          };
+        })
       : [];
 
     return norm;
@@ -216,6 +249,15 @@ export function MarketMapperResults({
           rec.priority || "medium"
         ).toUpperCase()} PRIORITY)\n`;
         if (rec.reasoning) md += `   - Reasoning: ${rec.reasoning}\n`;
+        if (rec.timeline) md += `   - Timeline: ${rec.timeline}\n`;
+        if (rec.expectedOutcome) md += `   - Expected Outcome: ${rec.expectedOutcome}\n`;
+        if (rec.resources && rec.resources.length) {
+          md += `   - Resources: ${rec.resources.join(', ')}\n`;
+        }
+        if (rec.successMetrics && rec.successMetrics.length) {
+          md += `   - Success Metrics: ${rec.successMetrics.join(', ')}\n`;
+        }
+        md += `\n`;
       });
       md += `\n`;
     }
