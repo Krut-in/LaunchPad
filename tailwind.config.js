@@ -1,6 +1,17 @@
+/**
+ * TAILWIND CSS CONFIGURATION
+ * 
+ * Purpose: Configures Tailwind CSS utility framework with custom design system
+ * Contains: Dark mode settings, content paths, custom theme colors, animations
+ * Requirements: Provides consistent design system with shadcn/ui component integration
+ * Dependencies: Tailwind CSS, tailwindcss-animate plugin, CSS custom properties
+ */
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  /** Enable class-based dark mode switching */
   darkMode: ["class"],
+  /** File paths to scan for Tailwind classes */
   content: [
     './pages/**/*.{ts,tsx}',
     './components/**/*.{ts,tsx}',

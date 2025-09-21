@@ -1,11 +1,30 @@
+/**
+ * MARKET RESEARCH SERVICE
+ * 
+ * Purpose: Comprehensive market analysis including sizing, trends, and regulatory insights
+ * Contains: TAM/SAM/SOM calculations, trend analysis, regulatory research, economic indicators
+ * Requirements: Provides data-driven market intelligence for strategic business decisions
+ * Dependencies: Zod validation, external data sources, statistical analysis utilities
+ */
+
 import { z } from 'zod'
 
+/**
+ * Configuration interface for market research depth and scope
+ * Controls the comprehensiveness and focus areas of market analysis
+ */
 export interface MarketResearchConfig {
+  /** Research depth level affecting detail and accuracy */
   depth: 'basic' | 'comprehensive' | 'investor_grade'
+  /** Whether to include regulatory compliance analysis */
   includeRegulatory: boolean
+  /** Whether to include technology trend analysis */
   includeTechnology: boolean
+  /** Whether to include economic indicators and forecasts */
   includeEconomic: boolean
+  /** Geographic markets to analyze */
   geographicScope: string[]
+  /** Time horizon for projections and trends */
   timeHorizon: '1_year' | '3_years' | '5_years'
 }
 

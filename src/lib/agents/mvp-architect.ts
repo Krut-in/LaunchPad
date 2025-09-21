@@ -1,3 +1,12 @@
+/**
+ * MVP ARCHITECT AGENT
+ * 
+ * Purpose: Designs minimum viable product architecture and development roadmaps
+ * Contains: Feature prioritization, tech stack recommendations, timeline planning, resource estimation
+ * Requirements: Transforms business ideas into actionable MVP development plans with realistic timelines
+ * Dependencies: BaseAgent framework, Zod validation, MVP-specific type definitions
+ */
+
 import { z } from 'zod'
 import { BaseAgent, AgentConfig } from './base-agent'
 import { AgentType, MVPArchitectInput, MVPArchitectOutput } from '@/types'

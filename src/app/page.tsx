@@ -1,8 +1,24 @@
+/**
+ * HOMEPAGE COMPONENT
+ * 
+ * Purpose: Landing page showcasing LaunchPad's AI-powered startup validation platform
+ * Contains: Hero section, feature showcase, process explanation, call-to-action sections
+ * Requirements: Converts visitors to users by explaining value proposition and guiding to sign-up
+ * Dependencies: UI components from shadcn/ui, Lucide icons, Next.js Link component
+ */
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Brain, TrendingUp, Users, Zap } from 'lucide-react'
 import Link from 'next/link'
 
+/**
+ * Homepage component with full marketing site layout
+ * @returns {JSX.Element} Complete landing page with header, hero, features, and footer
+ * 
+ * Purpose: Primary entry point for new users to understand and engage with LaunchPad
+ * Features: Responsive design, clear value proposition, multiple conversion points
+ */
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">

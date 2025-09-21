@@ -1,6 +1,18 @@
+/**
+ * TYPE DEFINITIONS
+ * 
+ * Purpose: Centralized type definitions and Zod schemas for the entire application
+ * Contains: User management, projects, agents, errors, API responses, and business domain types
+ * Requirements: Provides type safety and validation across all application layers
+ * Dependencies: Zod for runtime validation and TypeScript type inference
+ */
+
 import { z } from 'zod'
 
-// User Types
+/**
+ * User Management Types
+ * Core user account and authentication data structures
+ */
 export const UserSchema = z.object({
   id: z.string(),
   email: z.string().email(),

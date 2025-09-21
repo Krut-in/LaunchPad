@@ -1,38 +1,62 @@
+/**
+ * COMPETITOR INTELLIGENCE AGENT
+ * 
+ * Purpose: Specialized AI agent for competitive analysis and market positioning intelligence
+ * Contains: Competitor identification, strength/weakness analysis, market share estimation, strategic recommendations
+ * Requirements: Provides comprehensive competitive intelligence for startup market entry strategies
+ * Dependencies: BaseAgent framework, Zod validation, type definitions for competitive analysis
+ */
+
 import { z } from 'zod'
 import { BaseAgent, AgentConfig } from './base-agent'
 import { AgentType, CompetitorGPTInput, CompetitorGPTOutput } from '@/types'
 
+/**
+ * Input validation schema for competitive analysis requests
+ * Ensures minimum data quality for meaningful competitive intelligence
+ */
 const CompetitorGPTInputSchema = z.object({
+  /** Business concept description (minimum 10 chars for context) */
   businessIdea: z.string().min(10, 'Business idea must be at least 10 characters'),
+  /** Industry classification for competitive landscape scoping */
   industry: z.string().min(1, 'Industry is required'),
+  /** Target market definition for competitor relevance filtering */
   targetMarket: z.string().min(1, 'Target market is required'),
 })
 
+/**
+ * Output schema defining comprehensive competitive analysis structure
+ * Ensures consistent, structured competitive intelligence delivery
+ */
 const CompetitorGPTOutputSchema = z.object({
+  /** Direct competitors offering similar products/services */
   directCompetitors: z.array(z.object({
     name: z.string(),
     description: z.string(),
     strengths: z.array(z.string()),
     weaknesses: z.array(z.string()),
-    marketShare: z.number().min(0).max(100),
-    funding: z.string(),
+    marketShare: z.number().min(0).max(100), // Percentage of market share
+    funding: z.string(), // Funding status/amount
     website: z.string(),
   })),
+  /** Indirect competitors with overlapping customer segments */
   indirectCompetitors: z.array(z.object({
     name: z.string(),
     description: z.string(),
-    overlap: z.string(),
-    threat: z.enum(['high', 'medium', 'low']),
+    overlap: z.string(), // How they overlap with target business
+    threat: z.enum(['high', 'medium', 'low']), // Threat level assessment
   })),
+  /** Potential competitive advantages for the new business */
   competitiveAdvantages: z.array(z.object({
     advantage: z.string(),
-    sustainability: z.enum(['high', 'medium', 'low']),
-    implementation: z.string(),
+    sustainability: z.enum(['high', 'medium', 'low']), // How defensible
+    implementation: z.string(), // How to achieve this advantage
   })),
+  /** Strategic recommendations for competitive positioning */
   recommendations: z.array(z.object({
     recommendation: z.string(),
     priority: z.enum(['high', 'medium', 'low']),
-    reasoning: z.string(),
+    reasoning: z.string(), // Why this recommendation matters
   })),
 })
 

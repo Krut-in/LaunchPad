@@ -1,6 +1,6 @@
 /**
  * MARKET MAPPER RESULTS COMPONENT
- * 
+ *
  * Purpose: Displays comprehensive market analysis results in a structured, readable format
  * Contains: Executive summary, recommendations, competitor analysis, and action items
  * Requirements: Transforms AI-generated analysis into user-friendly presentation with export capabilities

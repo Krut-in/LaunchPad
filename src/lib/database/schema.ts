@@ -1,8 +1,20 @@
+/**
+ * DATABASE SCHEMA DEFINITIONS
+ * 
+ * Purpose: Defines the complete database structure for the LaunchPad application
+ * Contains: User management, project tracking, agent sessions, conversation history, analysis results
+ * Requirements: Provides type-safe database schema with relationships and constraints using Drizzle ORM
+ * Dependencies: Drizzle ORM with SQLite, custom AgentType definitions
+ */
+
 import { sql } from 'drizzle-orm'
 import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core'
 import { AgentType } from '@/types'
 
-// Users table
+/**
+ * Users table - Core user account management
+ * Tracks user authentication, subscription status, and credit system
+ */
 export const users = sqliteTable('users', {
   id: text('id').primaryKey(),
   email: text('email').notNull().unique(),
