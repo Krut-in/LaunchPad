@@ -33,7 +33,7 @@ export function MarketMapperComplete({
     const result = await onAnalyze(input);
 
     // Save form data when we get questions or do analysis
-    if (input.analysisMode === "questions" && result.questions) {
+    if (input.processingMode === "questions" && result.questions) {
       setSavedFormData({
         businessIdea: input.businessIdea,
         industry: input.industry,
@@ -41,7 +41,10 @@ export function MarketMapperComplete({
         questions: result.questions,
         answers: {},
       });
-    } else if (input.analysisMode === "analysis") {
+    } else if (
+      input.processingMode === "deep_analysis" ||
+      input.processingMode === "discovery"
+    ) {
       // Update saved form data with answers
       setSavedFormData(prev =>
         prev

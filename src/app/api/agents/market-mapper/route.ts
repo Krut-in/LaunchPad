@@ -5,116 +5,107 @@ import { MarketMapperAgent, MarketMapperInput, MarketMapperOutput } from '@/lib/
 import { createApiResponse, getErrorMessage } from '@/lib/utils'
 
 function generateMockResponse(input: MarketMapperInput): MarketMapperOutput {
-  if (input.analysisMode === 'questions') {
-    return {
-      questions: [
-        {
-          id: 'target_customer',
-          question: 'Who is your primary target customer? Please describe their demographics, job roles, and key characteristics.',
-          type: 'target_customer',
-          required: true,
-        },
-        {
-          id: 'problem_definition',
-          question: 'What specific problem does your solution solve? How do your customers currently handle this problem?',
-          type: 'problem_definition',
-          required: true,
-        },
-        {
-          id: 'business_model',
-          question: 'How do you plan to make money? What is your pricing strategy and revenue model?',
-          type: 'business_model',
-          required: true,
-        },
-        {
-          id: 'differentiation',
-          question: 'What makes your solution unique compared to existing alternatives? What is your competitive advantage?',
-          type: 'differentiation',
-          required: false,
-        }
-      ]
-    }
+  // Use a consistent timestamp for SSR/client consistency
+  const consistentTimestamp = new Date('2024-01-01T00:00:00Z')
+  const mockResponse: MarketMapperOutput = {
+    analysisId: `mock-analysis-${input.businessIdea.slice(0, 10).replace(/\s+/g, '-').toLowerCase()}`,
+    timestamp: consistentTimestamp,
+    processingMode: input.processingMode,
+    researchDepth: input.researchDepth || 'basic',
+    confidenceScore: 0.8,
+    dataSources: [
+      { source: 'Mock Data', type: 'manual_research', reliability: 0.8 }
+    ]
+  }
+
+  if (input.processingMode === 'questions') {
+    mockResponse.questions = [
+      {
+        id: 'target_customer',
+        question: 'Who is your primary target customer? Please describe their demographics, job roles, and key characteristics.',
+        type: 'target_customer',
+        priority: 'critical',
+        required: true,
+        industrySpecific: false,
+      },
+      {
+        id: 'problem_definition',
+        question: 'What specific problem does your solution solve? How do your customers currently handle this problem?',
+        type: 'problem_definition',
+        priority: 'critical',
+        required: true,
+        industrySpecific: false,
+      },
+      {
+        id: 'business_model',
+        question: 'How do you plan to make money? What is your pricing strategy and revenue model?',
+        type: 'business_model',
+        priority: 'high',
+        required: true,
+        industrySpecific: false,
+      },
+      {
+        id: 'differentiation',
+        question: 'What makes your solution unique compared to existing alternatives? What is your competitive advantage?',
+        type: 'differentiation',
+        priority: 'high',
+        required: false,
+        industrySpecific: false,
+      }
+    ]
+    return mockResponse
   } else {
-    return {
-      executiveSummary: `Based on your business idea "${input.businessIdea.substring(0, 50)}...", this appears to be a promising opportunity in the ${input.industry || 'technology'} space. The market shows strong potential with growing demand and clear customer pain points that your solution addresses.`,
-      targetAudience: [
-        {
-          segment: 'Small to Medium Businesses',
-          pain_points: [
-            'Limited resources for manual processes',
-            'Need for cost-effective solutions',
-            'Difficulty scaling operations'
-          ],
-          size: '10M+ businesses globally',
-          characteristics: ['Budget-conscious', 'Growth-focused', 'Tech-adopters']
-        },
-        {
-          segment: 'Enterprise Clients',
-          pain_points: [
-            'Complex operational requirements',
-            'Need for scalable solutions',
-            'Compliance and security concerns'
-          ],
-          size: '500K+ large enterprises',
-          characteristics: ['Quality-focused', 'Risk-averse', 'Long sales cycles']
-        }
+    mockResponse.executiveSummary = {
+      overview: `Based on your business idea "${input.businessIdea.substring(0, 50)}...", this appears to be a promising opportunity in the ${input.industry || 'technology'} space.`,
+      keyFindings: [
+        'Market shows strong potential with growing demand',
+        'Clear customer pain points identified',
+        'Competitive landscape has opportunities for differentiation'
       ],
-      marketOpportunity: {
-        size: '$50B+ addressable market with 15% annual growth',
-        growth: 'Strong growth driven by digital transformation trends',
-        trends: [
-          'Increasing adoption of automation tools',
-          'Remote work driving demand for digital solutions',
-          'Focus on operational efficiency and cost reduction'
-        ]
-      },
-      competitors: [
-        {
-          name: 'Market Leader A',
-          strengths: ['Strong brand recognition', 'Large customer base', 'Comprehensive features'],
-          weaknesses: ['High pricing', 'Complex onboarding', 'Legacy technology'],
-          marketPosition: 'Enterprise-focused'
-        },
-        {
-          name: 'Emerging Player B',
-          strengths: ['Modern interface', 'Competitive pricing', 'Fast implementation'],
-          weaknesses: ['Limited features', 'Small team', 'Unproven at scale'],
-          marketPosition: 'SMB-focused'
-        }
-      ],
-      positioning: {
-        usp: 'The only solution that combines enterprise-grade capabilities with small business simplicity and pricing',
-        differentiation: [
-          'Intuitive user experience requiring minimal training',
-          'Flexible pricing model that scales with business growth',
-          'Rapid deployment and time-to-value',
-          'Industry-specific customization options'
-        ],
-        valueProposition: 'Reduce operational costs by 30% while improving efficiency and scalability'
-      },
+      marketOpportunity: 'Large addressable market with strong growth trends',
+      competitiveLandscape: 'Fragmented market with room for innovation',
       recommendations: [
-        {
-          action: 'Conduct customer discovery interviews with 20+ potential customers',
-          priority: 'high',
-          reasoning: 'Validate problem-solution fit and refine value proposition'
-        },
-        {
-          action: 'Build a minimum viable product (MVP) focusing on core features',
-          priority: 'high',
-          reasoning: 'Test market demand with a functional prototype'
-        },
-        {
-          action: 'Develop strategic partnerships with complementary service providers',
-          priority: 'medium',
-          reasoning: 'Accelerate market entry and customer acquisition'
-        },
-        {
-          action: 'Create content marketing strategy to establish thought leadership',
-          priority: 'medium',
-          reasoning: 'Build brand awareness and generate inbound leads'
-        }
-      ]
+        'Conduct customer discovery interviews',
+        'Build MVP focusing on core features',
+        'Develop strategic partnerships'
+      ],
+      investmentReadiness: 'needs_work'
     }
+
+    mockResponse.recommendations = [
+      {
+        category: 'market_entry',
+        action: 'Conduct customer discovery interviews with 20+ potential customers',
+        priority: 'critical',
+        timeline: '4-6 weeks',
+        resources: ['Customer research team', 'Interview budget'],
+        expectedOutcome: 'Validated problem-solution fit',
+        successMetrics: ['20+ interviews completed', 'Problem validation score >80%'],
+        reasoning: 'Essential to validate market demand before significant investment'
+      },
+      {
+        category: 'product_development',
+        action: 'Build a minimum viable product (MVP) focusing on core features',
+        priority: 'high',
+        timeline: '3-4 months',
+        resources: ['Development team', 'Design resources', 'Technical infrastructure'],
+        expectedOutcome: 'Functional prototype for market testing',
+        successMetrics: ['MVP completion', 'User testing feedback >7/10'],
+        reasoning: 'Demonstrate concept viability and gather user feedback'
+      },
+      {
+        category: 'partnerships',
+        action: 'Develop strategic partnerships with complementary service providers',
+        priority: 'medium',
+        timeline: '2-3 months',
+        resources: ['Business development', 'Legal support'],
+        expectedOutcome: 'Partnership agreements signed',
+        successMetrics: ['2+ strategic partnerships', 'Channel partner agreements'],
+        reasoning: 'Accelerate market entry and customer acquisition through existing networks'
+      }
+    ]
+
+    return mockResponse
   }
 }
 
@@ -137,7 +128,15 @@ export async function POST(request: NextRequest) {
       industry: body.industry,
       targetMarket: body.targetMarket,
       answers: body.answers,
-      analysisMode: body.analysisMode || 'questions',
+      processingMode: body.processingMode || 'discovery',
+      researchDepth: body.researchDepth || 'basic',
+      competitorLimit: body.competitorLimit || 10,
+      includeWebResearch: body.includeWebResearch !== false,
+      includeSentimentAnalysis: body.includeSentimentAnalysis !== false,
+      targetGeography: body.targetGeography,
+      budgetRange: body.budgetRange,
+      timeHorizon: body.timeHorizon,
+      existingCompetitors: body.existingCompetitors,
     }
 
     if (!input.businessIdea || input.businessIdea.length < 10) {
@@ -149,7 +148,7 @@ export async function POST(request: NextRequest) {
 
     // Check if we're in development mode and should use mock data
     const isDevelopment = process.env.NODE_ENV === 'development'
-    const useMockData = isDevelopment && process.env.USE_MOCK_DATA === 'true'
+    const useMockData = isDevelopment || process.env.USE_MOCK_DATA === 'true'
 
     let result
     

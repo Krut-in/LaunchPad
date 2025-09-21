@@ -35,8 +35,15 @@ interface Question {
     | "problem_definition"
     | "business_model"
     | "differentiation"
-    | "market_scope";
+    | "market_scope"
+    | "competitive_landscape"
+    | "validation"
+    | "strategy";
+  priority: "critical" | "high" | "medium" | "low";
   required: boolean;
+  context?: string;
+  followUpQuestions?: string[];
+  industrySpecific: boolean;
   answered?: boolean;
 }
 
@@ -94,7 +101,11 @@ export function MarketMapperInterface({
         businessIdea,
         industry: industry || undefined,
         targetMarket: targetMarket || undefined,
-        analysisMode: "questions",
+        processingMode: "questions",
+        researchDepth: "basic",
+        competitorLimit: 10,
+        includeWebResearch: true,
+        includeSentimentAnalysis: true,
       };
 
       const result = await onAnalyze(input);
@@ -129,7 +140,11 @@ export function MarketMapperInterface({
         industry: industry || undefined,
         targetMarket: targetMarket || undefined,
         answers,
-        analysisMode: "analysis",
+        processingMode: "deep_analysis",
+        researchDepth: "comprehensive",
+        competitorLimit: 10,
+        includeWebResearch: true,
+        includeSentimentAnalysis: true,
       };
 
       const result = await onAnalyze(input);
@@ -324,53 +339,72 @@ export function MarketMapperInterface({
         )}
 
         <div className="space-y-4">
-          {questions.map((question, index) => (
-            <Card
-              key={question.id}
-              className={`transition-all ${
-                question.answered ? "border-green-200 bg-green-50/30" : ""
-              }`}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-start gap-3">
-                  <div className="mt-1">
-                    {question.answered ? (
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                    ) : (
-                      <Circle className="h-5 w-5 text-gray-400" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-sm font-medium text-gray-500">
-                        Question {index + 1}
-                      </span>
-                      {question.required && (
-                        <Badge variant="secondary" className="text-xs">
-                          Required
-                        </Badge>
-                      )}
-                      <Badge variant="outline" className="text-xs capitalize">
-                        {question.type.replace("_", " ")}
-                      </Badge>
-                    </div>
-                    <h3 className="font-medium text-gray-900 mb-3">
-                      {question.question}
-                    </h3>
-                    <Textarea
-                      placeholder="Enter your answer here..."
-                      value={answers[question.id] || ""}
-                      onChange={e =>
-                        handleAnswerChange(question.id, e.target.value)
-                      }
-                      rows={3}
-                      className="w-full"
-                    />
-                  </div>
-                </div>
+          {questions?.length === 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-center text-gray-500">
+                  No questions generated
+                </CardTitle>
+                <CardDescription className="text-center">
+                  Please try again or provide more details about your business
+                  idea.
+                </CardDescription>
               </CardHeader>
             </Card>
-          ))}
+          ) : (
+            questions
+              ?.filter(q => q && q.id && q.question && q.type)
+              ?.map((question, index) => (
+                <Card
+                  key={question.id}
+                  className={`transition-all ${
+                    question.answered ? "border-green-200 bg-green-50/30" : ""
+                  }`}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1">
+                        {question.answered ? (
+                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        ) : (
+                          <Circle className="h-5 w-5 text-gray-400" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-sm font-medium text-gray-500">
+                            Question {index + 1}
+                          </span>
+                          {question.required && (
+                            <Badge variant="secondary" className="text-xs">
+                              Required
+                            </Badge>
+                          )}
+                          <Badge
+                            variant="outline"
+                            className="text-xs capitalize"
+                          >
+                            {question.type?.replace("_", " ") || "General"}
+                          </Badge>
+                        </div>
+                        <h3 className="font-medium text-gray-900 mb-3">
+                          {question.question}
+                        </h3>
+                        <Textarea
+                          placeholder="Enter your answer here..."
+                          value={answers[question.id] || ""}
+                          onChange={e =>
+                            handleAnswerChange(question.id, e.target.value)
+                          }
+                          rows={3}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+                  </CardHeader>
+                </Card>
+              ))
+          )}
         </div>
 
         <Card>
