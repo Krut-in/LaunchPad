@@ -109,14 +109,20 @@ export function MarketMapperInterface({
       };
 
       const result = await onAnalyze(input);
-      if (result.questions) {
+      if (result.questions && result.questions.length > 0) {
         setQuestions(result.questions.map(q => ({ ...q, answered: false })));
         setCurrentStep("questions");
+      } else {
+        setError(
+          "No questions were generated. This could be due to an unclear business idea. Please try refining your description or try again."
+        );
       }
     } catch (error) {
       console.error("Error generating questions:", error);
       setError(
-        error instanceof Error ? error.message : "Failed to generate questions"
+        error instanceof Error
+          ? error.message
+          : "Failed to generate questions. Please try again."
       );
     }
   };

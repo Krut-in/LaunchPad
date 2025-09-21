@@ -477,7 +477,27 @@ ANALYSIS APPROACH:
 4. Prioritize questions by validation importance
 5. Generate follow-up questions for unclear areas
 
-Format your response as valid JSON with prioritized question objects.`
+## CRITICAL: STRICT JSON CONTRACT
+You MUST return a single JSON object with exactly this structure. Do not include any other top-level keys or explanatory text:
+
+{
+  "questions": [
+    {
+      "id": "unique_question_id",
+      "question": "Your detailed question here",
+      "type": "target_customer",
+      "priority": "critical",
+      "required": true,
+      "context": "Optional context explaining why this question matters",
+      "followUpQuestions": ["Optional follow-up question 1"],
+      "industrySpecific": false
+    }
+  ]
+}
+
+Valid types: target_customer, problem_definition, business_model, differentiation, market_scope, competitive_landscape, validation, strategy
+Valid priorities: critical, high, medium, low
+Return ONLY the JSON object - no additional text.`
 
 const DEEP_ANALYSIS_PROMPT = `You are MarketMapper, an elite business analysis expert specializing in investor-grade, industry-specific market analysis. Your mission is to provide comprehensive, customized analysis that addresses the unique characteristics of each business model and industry context.
 
@@ -759,13 +779,41 @@ export class MarketMapperAgent extends BaseAgent<MarketMapperInput, MarketMapper
     
     const prompt = this.buildQuestionPrompt(input, template, existingAnswers)
     
-    const response = await this.callOpenAI([
-      { role: 'user', content: prompt }
-    ], QUESTION_GENERATION_PROMPT)
+    let result: MarketMapperOutput
+    let retryCount = 0
+    const maxRetries = 1
     
-    const result = this.parseJsonResponse<MarketMapperOutput>(response)
+    while (retryCount <= maxRetries) {
+      try {
+        const response = await this.callOpenAI([
+          { role: 'user', content: prompt }
+        ], QUESTION_GENERATION_PROMPT)
+        
+        const parsed = this.parseJsonResponse<any>(response)
+        
+        // Normalize the response to ensure we have a questions array
+        result = this.normalizeQuestionResponse(parsed)
+        
+        // Validate that we have valid questions
+        if (result.questions && result.questions.length > 0) {
+          break
+        } else {
+          throw new Error('No valid questions generated')
+        }
+      } catch (error) {
+        retryCount++
+        if (retryCount > maxRetries) {
+          console.error('Failed to generate questions after retries:', error)
+          // Return a fallback with basic questions
+          result = this.generateFallbackQuestions(input)
+          break
+        }
+        // Wait a bit before retry
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+    }
     
-    return this.enhanceWithMetadata(result, {
+    return this.enhanceWithMetadata(result!, {
       analysisId,
       processingMode: 'questions',
       researchDepth: input.researchDepth || 'basic',
@@ -1333,6 +1381,155 @@ ${JSON.stringify(validation.customerValidation, null, 2)}
 
 Provide comprehensive validation framework with hypothesis testing methodology, success criteria, validation experiments, and pivot triggers. Focus on measurable validation metrics and iterative learning approach.
     `
+  }
+
+  // Helper method to normalize question response from AI
+  private normalizeQuestionResponse(parsed: any): MarketMapperOutput {
+    // If the response is already in the correct format
+    if (parsed.questions && Array.isArray(parsed.questions)) {
+      return this.ensureQuestionFields(parsed)
+    }
+    
+    // If the response is just an array of questions
+    if (Array.isArray(parsed)) {
+      return this.ensureQuestionFields({ questions: parsed })
+    }
+    
+    // Check for common alternative keys
+    const questionKeys = ['clarifying_questions', 'generated_questions', 'question_list', 'questionnaire']
+    for (const key of questionKeys) {
+      if (parsed[key] && Array.isArray(parsed[key])) {
+        return this.ensureQuestionFields({ questions: parsed[key] })
+      }
+    }
+    
+    // If no questions found, return empty structure
+    return this.ensureQuestionFields({ questions: [] })
+  }
+  
+  // Helper method to ensure all question fields are present
+  private ensureQuestionFields(response: any): MarketMapperOutput {
+    const questions = response.questions || []
+    
+    const normalizedQuestions = questions.map((q: any, index: number) => ({
+      id: q.id || `question_${index + 1}`,
+      question: q.question || q.text || q.prompt || 'Missing question text',
+      type: this.normalizeQuestionType(q.type || q.category || 'target_customer'),
+      priority: this.normalizeQuestionPriority(q.priority || q.importance || 'medium'),
+      required: q.required !== undefined ? q.required : (q.priority === 'critical' || index < 2),
+      context: q.context || q.explanation || undefined,
+      followUpQuestions: Array.isArray(q.followUpQuestions) ? q.followUpQuestions : 
+                        Array.isArray(q.follow_up) ? q.follow_up : [],
+      industrySpecific: q.industrySpecific !== undefined ? q.industrySpecific : false
+    }))
+    
+    return {
+      ...response,
+      questions: normalizedQuestions
+    }
+  }
+  
+  // Helper method to normalize question types
+  private normalizeQuestionType(type: string): string {
+    const validTypes = ['target_customer', 'problem_definition', 'business_model', 'differentiation', 
+                       'market_scope', 'competitive_landscape', 'validation', 'strategy']
+    
+    const normalized = type.toLowerCase().replace(/[^a-z]/g, '_')
+    
+    // Map common variations
+    const typeMap: Record<string, string> = {
+      'customer': 'target_customer',
+      'customers': 'target_customer',
+      'target': 'target_customer',
+      'problem': 'problem_definition',
+      'problems': 'problem_definition',
+      'pain_point': 'problem_definition',
+      'pain_points': 'problem_definition',
+      'business': 'business_model',
+      'model': 'business_model',
+      'revenue': 'business_model',
+      'monetization': 'business_model',
+      'competitive': 'competitive_landscape',
+      'competitors': 'competitive_landscape',
+      'competition': 'competitive_landscape',
+      'market': 'market_scope',
+      'scope': 'market_scope',
+      'size': 'market_scope'
+    }
+    
+    return typeMap[normalized] || (validTypes.includes(normalized) ? normalized : 'target_customer')
+  }
+  
+  // Helper method to normalize question priorities
+  private normalizeQuestionPriority(priority: string): string {
+    const validPriorities = ['critical', 'high', 'medium', 'low']
+    const normalized = priority.toLowerCase()
+    
+    const priorityMap: Record<string, string> = {
+      'urgent': 'critical',
+      'important': 'high',
+      'normal': 'medium',
+      'optional': 'low'
+    }
+    
+    return priorityMap[normalized] || (validPriorities.includes(normalized) ? normalized : 'medium')
+  }
+  
+  // Helper method to generate fallback questions when AI fails
+  private generateFallbackQuestions(input: MarketMapperInput): MarketMapperOutput {
+    const industry = input.industry || this.inferIndustry(input.businessIdea)
+    const template = INDUSTRY_TEMPLATES[industry.toLowerCase() as keyof typeof INDUSTRY_TEMPLATES] || INDUSTRY_TEMPLATES.default
+    
+    const fallbackQuestions: any[] = [
+      {
+        id: 'target_customer_fallback',
+        question: `Who is your ideal customer for this ${input.businessIdea}? Please describe their demographics, needs, and current alternatives.`,
+        type: 'target_customer' as const,
+        priority: 'critical' as const,
+        required: true,
+        context: 'Understanding your target customer is essential for market validation',
+        followUpQuestions: [],
+        industrySpecific: false
+      },
+      {
+        id: 'problem_validation_fallback',
+        question: 'What specific problem does your solution solve, and how painful is this problem for your customers?',
+        type: 'problem_definition' as const,
+        priority: 'critical' as const,
+        required: true,
+        context: 'Problem validation ensures market demand exists',
+        followUpQuestions: [],
+        industrySpecific: false
+      },
+      {
+        id: 'business_model_fallback',
+        question: 'How do you plan to make money? What is your pricing strategy and revenue model?',
+        type: 'business_model' as const,
+        priority: 'high' as const,
+        required: true,
+        context: 'A clear business model is crucial for sustainability',
+        followUpQuestions: [],
+        industrySpecific: false
+      }
+    ]
+    
+    // Add industry-specific question if available
+    if (template.keyQuestions && template.keyQuestions.length > 0) {
+      fallbackQuestions.push({
+        id: 'industry_specific_fallback',
+        question: template.keyQuestions[0],
+        type: 'validation' as const,
+        priority: 'medium' as const,
+        required: false,
+        context: `Industry-specific question for ${industry}`,
+        followUpQuestions: [],
+        industrySpecific: true
+      })
+    }
+    
+    return {
+      questions: fallbackQuestions
+    } as any
   }
 
   // Helper method to check if sufficient information is available for analysis
