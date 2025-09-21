@@ -286,56 +286,163 @@ export type StrategicRoadmap = z.infer<typeof StrategicRoadmapSchema>
 // Enhanced prompting system with industry-specific templates
 const INDUSTRY_TEMPLATES = {
   'saas': {
-    focusAreas: ['user_acquisition', 'churn_prevention', 'pricing_model', 'integration_needs'],
-    keyQuestions: ['What specific workflow does your SaaS optimize?', 'How do users currently solve this problem?'],
-    competitorTypes: ['direct_saas', 'enterprise_software', 'workflow_tools'],
+    focusAreas: ['user_acquisition', 'churn_prevention', 'pricing_model', 'integration_needs', 'customer_success', 'product_market_fit'],
+    keyQuestions: [
+      'What specific workflow inefficiency does your SaaS eliminate that existing tools cannot?',
+      'What is your ideal customer profile and how do you identify high-value prospects?',
+      'How do you measure and improve customer success and reduce churn?',
+      'What integrations are critical for adoption and how complex are they to build?'
+    ],
+    competitorTypes: ['direct_saas_competitors', 'enterprise_incumbents', 'open_source_alternatives', 'in_house_solutions'],
+    specificAnalysis: {
+      regulatoryFactors: ['data_privacy_gdpr', 'security_compliance_soc2', 'industry_certifications', 'international_data_laws'],
+      marketDynamics: ['saas_market_saturation', 'customer_expectations_evolution', 'ai_ml_disruption', 'integration_ecosystem'],
+      successMetrics: ['monthly_recurring_revenue', 'net_revenue_retention', 'customer_acquisition_cost', 'time_to_value'],
+      timelineFactors: ['mvp_development_6_12_months', 'enterprise_sales_cycle_6_18_months', 'market_education_timeline', 'scaling_team']
+    }
   },
   'fintech': {
-    focusAreas: ['regulatory_compliance', 'security', 'user_trust', 'financial_partnerships'],
-    keyQuestions: ['What financial pain point are you addressing?', 'How will you ensure regulatory compliance?'],
-    competitorTypes: ['traditional_banks', 'fintech_startups', 'payment_processors'],
+    focusAreas: ['regulatory_compliance', 'security_infrastructure', 'user_trust_building', 'financial_partnerships', 'fraud_prevention'],
+    keyQuestions: [
+      'What specific financial licenses and regulatory approvals do you need in target markets?',
+      'How do you handle AML, KYC, and other compliance requirements cost-effectively?',
+      'What is your differentiation vs traditional banks and existing fintech solutions?',
+      'How do you build consumer trust and overcome regulatory scrutiny?'
+    ],
+    competitorTypes: ['traditional_banks', 'fintech_unicorns', 'payment_processors', 'neobanks', 'cryptocurrency_platforms'],
+    specificAnalysis: {
+      regulatoryFactors: ['banking_licenses_by_jurisdiction', 'pci_dss_compliance', 'open_banking_regulations', 'consumer_protection_laws'],
+      marketDynamics: ['regulatory_sandbox_programs', 'bank_partnership_trends', 'embedded_finance_growth', 'cryptocurrency_adoption'],
+      successMetrics: ['transaction_volume_growth', 'regulatory_compliance_score', 'customer_trust_metrics', 'fraud_detection_accuracy'],
+      timelineFactors: ['regulatory_approval_12_24_months', 'security_audit_timeline', 'bank_partnership_negotiation', 'compliance_infrastructure']
+    }
   },
   'healthcare': {
-    focusAreas: ['regulatory_approval', 'clinical_validation', 'provider_adoption', 'patient_outcomes'],
-    keyQuestions: ['What clinical evidence supports your solution?', 'How will you navigate FDA approval?'],
-    competitorTypes: ['medical_devices', 'healthcare_software', 'pharmaceutical'],
+    focusAreas: ['regulatory_pathway', 'clinical_validation', 'provider_workflow_integration', 'patient_outcomes', 'reimbursement_strategy'],
+    keyQuestions: [
+      'What FDA pathway (510k, De Novo, PMA) applies to your solution and what is the timeline?',
+      'What clinical evidence do you need and how will you conduct validation studies?',
+      'How does your solution integrate with existing EHR systems and clinical workflows?',
+      'What is your reimbursement strategy and payer engagement plan?'
+    ],
+    competitorTypes: ['medical_device_incumbents', 'digital_health_startups', 'pharmaceutical_companies', 'healthcare_it_vendors'],
+    specificAnalysis: {
+      regulatoryFactors: ['fda_clearance_pathway', 'hipaa_compliance_requirements', 'clinical_trial_regulations', 'medical_device_classification'],
+      marketDynamics: ['value_based_care_transition', 'telehealth_adoption', 'ai_in_healthcare_regulation', 'interoperability_mandates'],
+      successMetrics: ['clinical_outcome_improvement', 'provider_adoption_rate', 'patient_satisfaction_scores', 'cost_reduction_achieved'],
+      timelineFactors: ['clinical_study_duration_12_36_months', 'fda_review_timeline', 'health_system_procurement_cycle', 'pilot_to_deployment']
+    }
   },
   'ecommerce': {
-    focusAreas: ['customer_acquisition', 'inventory_management', 'logistics', 'marketplace_dynamics'],
-    keyQuestions: ['What makes customers choose your marketplace?', 'How will you solve the chicken-and-egg problem?'],
-    competitorTypes: ['major_platforms', 'niche_marketplaces', 'direct_brands'],
+    focusAreas: ['customer_acquisition_channels', 'supply_chain_optimization', 'marketplace_strategy', 'unit_economics', 'brand_differentiation'],
+    keyQuestions: [
+      'What is your specific customer acquisition strategy vs Amazon, Google Shopping, and social commerce?',
+      'How do you optimize supply chain and fulfillment for profitability and speed?',
+      'What are your unit economics including CAC, LTV, contribution margins, and path to profitability?',
+      'How do you differentiate on price, selection, experience, or brand in a crowded market?'
+    ],
+    competitorTypes: ['amazon_marketplace', 'shopify_stores', 'traditional_retailers', 'direct_to_consumer_brands', 'social_commerce'],
+    specificAnalysis: {
+      regulatoryFactors: ['consumer_protection_laws', 'product_liability_requirements', 'international_trade_regulations', 'tax_compliance_multistate'],
+      marketDynamics: ['marketplace_fee_increases', 'ios_privacy_impact_on_ads', 'supply_chain_disruptions', 'sustainability_consumer_demand'],
+      successMetrics: ['customer_lifetime_value', 'repeat_purchase_rate', 'inventory_turnover', 'gross_margin_improvement'],
+      timelineFactors: ['inventory_procurement_lead_times', 'fulfillment_center_setup', 'brand_building_timeline', 'seasonal_planning_cycles']
+    }
+  },
+  'marketplace': {
+    focusAreas: ['network_effects_strategy', 'chicken_egg_problem', 'take_rate_optimization', 'quality_control', 'trust_safety'],
+    keyQuestions: [
+      'What is your specific strategy to solve the chicken-and-egg problem for supply and demand?',
+      'What network effects and competitive moats do you plan to build?',
+      'How do you balance take rates with participant satisfaction and competitive positioning?',
+      'What quality control and trust mechanisms ensure positive experiences for all participants?'
+    ],
+    competitorTypes: ['horizontal_marketplaces', 'vertical_specialists', 'traditional_intermediaries', 'direct_peer_to_peer'],
+    specificAnalysis: {
+      regulatoryFactors: ['marketplace_liability_laws', 'worker_classification_regulations', 'payment_processing_compliance', 'international_tax_collection'],
+      marketDynamics: ['platform_economy_regulation', 'gig_economy_trends', 'disintermediation_threats', 'consolidation_pressures'],
+      successMetrics: ['gross_merchandise_value', 'active_participant_growth', 'transaction_frequency', 'net_promoter_score'],
+      timelineFactors: ['supply_side_acquisition', 'demand_generation_campaigns', 'platform_feature_development', 'geographic_expansion']
+    }
   },
   'default': {
-    focusAreas: ['target_customer', 'problem_definition', 'business_model', 'differentiation'],
-    keyQuestions: ['Who is your target customer?', 'What problem are you solving?'],
-    competitorTypes: ['direct', 'indirect', 'substitute'],
+    focusAreas: ['target_customer_definition', 'problem_validation', 'business_model_viability', 'competitive_differentiation'],
+    keyQuestions: [
+      'Who is your specific target customer and what alternatives do they currently use?',
+      'What problem are you solving and how do you know it is painful enough for customers to pay?',
+      'What is your business model and how do you plan to achieve sustainable unit economics?',
+      'What key assumptions about your market and customers need to be validated first?'
+    ],
+    competitorTypes: ['direct_competitors', 'indirect_alternatives', 'substitute_solutions', 'status_quo_manual_processes'],
+    specificAnalysis: {
+      regulatoryFactors: ['general_business_licensing', 'consumer_protection_basics', 'data_privacy_fundamentals', 'industry_specific_compliance'],
+      marketDynamics: ['market_maturity_assessment', 'customer_behavior_trends', 'technology_adoption_patterns', 'economic_sensitivity'],
+      successMetrics: ['customer_acquisition_metrics', 'revenue_growth_rate', 'market_penetration', 'customer_satisfaction'],
+      timelineFactors: ['market_validation_phase', 'mvp_development', 'initial_customer_acquisition', 'scaling_preparation']
+    }
   },
 }
 
-const DISCOVERY_MODE_PROMPT = `You are MarketMapper, an elite market research analyst and competitive intelligence expert. Your mission is to conduct comprehensive market discovery and competitor research for startup ideas.
+const DISCOVERY_MODE_PROMPT = `You are MarketMapper, an elite business analysis expert specializing in highly customized, industry-specific market analysis. Your mission is to deliver tailored insights that are directly relevant to each unique business concept, avoiding generic template responses.
 
-DISCOVERY OBJECTIVES:
-1. Identify and analyze direct, indirect, and substitute competitors
-2. Map the competitive landscape and market structure
-3. Discover market trends and growth opportunities
-4. Identify whitespace opportunities and market gaps
-5. Assess market readiness and timing
+CORE PRINCIPLES:
+- AVOID GENERIC RESPONSES: Each business requires unique analysis based on its specific industry, model, and context
+- INDUSTRY-SPECIFIC ANALYSIS: Incorporate sector-specific regulations, trends, competitive landscapes, and customer behaviors  
+- BUSINESS MODEL DIFFERENTIATION: Analyze specific revenue models (B2B, B2C, marketplace, SaaS, etc.) with tailored strategies
 
-RESEARCH METHODOLOGY:
-- Use multiple data sources and cross-reference findings
-- Apply confidence scoring to all insights
-- Focus on actionable intelligence
-- Identify both threats and opportunities
-- Consider regulatory and technological factors
+CUSTOMIZED DISCOVERY FRAMEWORK:
 
-OUTPUT REQUIREMENTS:
-- Comprehensive competitor intelligence with SWOT analysis
-- Market sizing estimates with methodology
-- Trend analysis with impact assessment
-- Opportunity identification with difficulty ratings
-- Strategic recommendations with prioritization
+1. INDUSTRY-SPECIFIC CONTEXT ANALYSIS
+   - Research industry-specific regulations, compliance requirements, and legal considerations
+   - Identify sector-specific market dynamics, trends, and growth drivers
+   - Analyze industry-unique customer behaviors and acquisition patterns
+   - Consider industry-specific operational challenges and opportunities
 
-Format your response as valid JSON matching the enhanced schema.`
+2. BUSINESS MODEL DEEP DIVE
+   - Analyze the specific revenue model and its implications
+   - Identify model-specific scalability challenges and growth opportunities
+   - Consider operational complexity unique to this business type
+   - Assess model-specific customer acquisition and retention strategies
+
+3. TARGETED MARKET RESEARCH
+   - Provide specific market size data relevant to the exact niche (not broad categories)
+   - Research actual recent industry developments and trends
+   - Include relevant case studies from similar successful businesses
+   - Use real data sources and cite specific market research
+
+4. PRECISE CUSTOMER ANALYSIS
+   - Define exact target customer segments with specific demographics/firmographics
+   - Identify industry-specific customer pain points and unmet needs
+   - Suggest appropriate customer research methods for this specific business type
+   - Recommend realistic sample sizes and research timelines based on the market
+
+5. ACTUAL COMPETITIVE LANDSCAPE
+   - Name real competitors in the space (direct and indirect)
+   - Analyze specific competitive advantages and differentiators
+   - Identify precise market gaps and positioning opportunities
+   - Assess barriers to entry specific to this industry
+
+6. CUSTOMIZED STRATEGIC RECOMMENDATIONS
+   - Base recommendations on the specific business model and industry context
+   - Provide realistic timelines considering industry development standards
+   - Suggest appropriate team composition and skills needed for this business type
+   - Recommend industry-specific tools, platforms, and resources
+
+QUALITY VALIDATION REQUIREMENTS:
+- Uniqueness Test: Analysis should be completely different for different business types
+- Industry Relevance: Address industry-specific challenges, regulations, and opportunities
+- Actionability: Recommendations must be immediately actionable for this particular business
+- Data Authenticity: Use real market data and actual competitor information
+- Timeline Realism: Reflect industry-specific development and market entry realities
+
+RED FLAGS TO AVOID:
+- Using identical templates across different business types
+- Generic partnership strategies without industry context
+- Vague language like "strong market potential" without specific data
+- Same customer interview quantities for all businesses
+- Identical MVP development timelines regardless of complexity
+
+Format your response as valid JSON matching the comprehensive schema with industry-specific insights.`
 
 const QUESTION_GENERATION_PROMPT = `You are MarketMapper, an expert market research analyst specializing in startup validation through intelligent questioning. Your role is to generate context-aware, progressive questions that unlock critical market insights.
 
@@ -372,61 +479,74 @@ ANALYSIS APPROACH:
 
 Format your response as valid JSON with prioritized question objects.`
 
-const DEEP_ANALYSIS_PROMPT = `You are MarketMapper, a world-class market research analyst and strategic consultant. Your mission is to provide comprehensive, investor-grade market analysis that transforms startup ideas into clear, actionable strategies.
+const DEEP_ANALYSIS_PROMPT = `You are MarketMapper, an elite business analysis expert specializing in investor-grade, industry-specific market analysis. Your mission is to provide comprehensive, customized analysis that addresses the unique characteristics of each business model and industry context.
+
+BUSINESS-SPECIFIC ANALYSIS PRINCIPLES:
+- INDUSTRY EXPERTISE: Deep knowledge of sector-specific dynamics, regulations, and success factors
+- MODEL-SPECIFIC INSIGHTS: Tailored analysis for the specific revenue model and business type
+- REAL DATA FOCUS: Use actual market data, real competitor names, and specific industry metrics
+- ACTIONABLE INTELLIGENCE: Provide immediately implementable recommendations with realistic timelines
 
 COMPREHENSIVE ANALYSIS FRAMEWORK:
 
-1. EXECUTIVE SUMMARY
-   - Market opportunity assessment with investment readiness
-   - Key findings and critical insights
-   - Strategic recommendations overview
-   - Risk assessment and mitigation strategies
+1. INDUSTRY-CONTEXTUALIZED EXECUTIVE SUMMARY
+   - Industry-specific market opportunity assessment with investment readiness
+   - Sector-specific key findings and critical insights tailored to this business type
+   - Business model-specific strategic recommendations
+   - Industry-relevant risk assessment and mitigation strategies
 
-2. MARKET SIZING & OPPORTUNITY
-   - TAM, SAM, SOM calculations with methodology
-   - Market growth projections and scenarios
-   - Geographic expansion opportunities
-   - Revenue potential and timeline
+2. PRECISE MARKET SIZING & OPPORTUNITY
+   - Industry-specific TAM, SAM, SOM calculations with sector-appropriate methodology
+   - Market growth projections based on actual industry trends and data
+   - Geographic expansion opportunities relevant to this business model
+   - Revenue potential and timeline realistic for this industry
 
-3. CUSTOMER ANALYSIS
-   - Detailed customer personas with psychographics
-   - Customer journey mapping with touchpoints
-   - Pain point hierarchy and urgency analysis
-   - Willingness to pay and price sensitivity
+3. TARGETED CUSTOMER ANALYSIS
+   - Industry-specific customer personas with relevant demographics/firmographics
+   - Business model-appropriate customer journey mapping and touchpoints
+   - Sector-specific pain point hierarchy and urgency analysis
+   - Industry-appropriate willingness to pay and pricing sensitivity analysis
 
-4. COMPETITIVE INTELLIGENCE
-   - Comprehensive competitor analysis with SWOT
-   - Competitive positioning matrix
-   - Market share analysis and trends
-   - Competitive gaps and whitespace opportunities
+4. REAL COMPETITIVE INTELLIGENCE
+   - Name actual competitors (direct and indirect) with specific company analysis
+   - Industry-specific competitive positioning matrix with real market players
+   - Actual market share analysis and trends from industry sources
+   - Precise competitive gaps and whitespace opportunities
 
-5. MARKET TRENDS & DYNAMICS
-   - Technology trends affecting the market
-   - Regulatory changes and implications
-   - Economic factors and market cycles
-   - Social and demographic shifts
+5. INDUSTRY-SPECIFIC MARKET DYNAMICS
+   - Technology trends specifically affecting this industry and business model
+   - Regulatory changes and compliance requirements relevant to this sector
+   - Economic factors and market cycles specific to this industry
+   - Social and demographic shifts impacting this particular market
 
-6. STRATEGIC POSITIONING
-   - Unique value proposition development
-   - Competitive differentiation strategy
-   - Brand positioning recommendations
-   - Partnership opportunities
+6. BUSINESS-SPECIFIC STRATEGIC POSITIONING
+   - Unique value proposition development tailored to industry dynamics
+   - Competitive differentiation strategy specific to this business model
+   - Brand positioning recommendations appropriate for this sector
+   - Partnership opportunities realistic and relevant to this industry
 
-7. GO-TO-MARKET STRATEGY
-   - Market entry strategy and timing
-   - Channel strategy and distribution
-   - Pricing strategy and optimization
-   - Customer acquisition approach
+7. CUSTOMIZED GO-TO-MARKET STRATEGY
+   - Market entry strategy and timing appropriate for this industry
+   - Channel strategy and distribution specific to this business model
+   - Pricing strategy optimized for this sector and customer type
+   - Customer acquisition approach tailored to industry norms and behaviors
 
-ANALYSIS QUALITY STANDARDS:
-- Data-driven insights with confidence scoring
-- Multiple source validation and cross-referencing
-- Realistic assessments with scenario planning
-- Actionable recommendations with timelines
-- Risk identification and mitigation strategies
-- Investment-ready market intelligence
+QUALITY VALIDATION STANDARDS:
+- Industry Authenticity: Analysis reflects deep understanding of sector-specific dynamics
+- Business Model Relevance: Recommendations appropriate for the specific revenue model
+- Data Verification: Use real market data, actual competitor information, and industry sources
+- Actionability Test: Each recommendation should be immediately implementable
+- Uniqueness Validation: Analysis should be distinctly different for different business types
+- Timeline Realism: Reflect actual industry development and market entry timelines
 
-Format your response as valid JSON matching the comprehensive schema.`
+AVOID GENERIC ANALYSIS:
+- No template responses that could apply to any business
+- No generic competitor analysis without naming actual companies
+- No broad market categories without specific niche focus
+- No identical timelines regardless of business complexity
+- No boilerplate recommendations without industry context
+
+Format your response as valid JSON matching the comprehensive schema with industry-specific, actionable insights.`
 
 const STRATEGY_MODE_PROMPT = `You are MarketMapper, an elite strategic consultant specializing in market entry and competitive strategy. Your expertise lies in creating phase-by-phase roadmaps that guide startups from idea to market leadership.
 
@@ -690,12 +810,20 @@ export class MarketMapperAgent extends BaseAgent<MarketMapperInput, MarketMapper
     
     const result = this.parseJsonResponse<MarketMapperOutput>(response)
     
+    // Validate analysis quality using the new framework
+    const validation = this.validateAnalysisQuality(result, input)
+    
+    // Log quality issues for monitoring and improvement
+    if (validation.qualityScore < 70) {
+      console.warn(`Analysis quality score: ${validation.qualityScore}%, Issues: ${validation.issues.join(', ')}`)
+    }
+    
     return this.enhanceWithMetadata(result, {
       analysisId,
       processingMode: 'deep_analysis',
       researchDepth: input.researchDepth || 'comprehensive',
       dataSources: this.getDataSources(),
-      confidenceScore: this.calculateOverallConfidence(result),
+      confidenceScore: Math.min(this.calculateOverallConfidence(result), validation.qualityScore / 100),
     })
   }
   
@@ -880,6 +1008,152 @@ export class MarketMapperAgent extends BaseAgent<MarketMapperInput, MarketMapper
       problemValidation: ['Market research confirms pain point', 'Customer interviews show demand'],
       solutionFit: 'Strong alignment with customer needs based on preliminary analysis',
     }
+  }
+
+  // Analysis Quality Validation Framework
+  private validateAnalysisQuality(result: MarketMapperOutput, input: MarketMapperInput): {
+    isValid: boolean;
+    issues: string[];
+    qualityScore: number;
+  } {
+    const issues: string[] = [];
+    let qualityScore = 100;
+
+    // Uniqueness Test
+    if (this.isGenericAnalysis(result, input)) {
+      issues.push('Analysis appears generic and could apply to multiple business types');
+      qualityScore -= 30;
+    }
+
+    // Industry Relevance Check
+    if (!this.hasIndustrySpecificInsights(result, input)) {
+      issues.push('Analysis lacks industry-specific insights and context');
+      qualityScore -= 25;
+    }
+
+    // Competitor Authenticity Check
+    if (!this.hasRealCompetitorData(result)) {
+      issues.push('Competitor analysis lacks specific company names and real market data');
+      qualityScore -= 20;
+    }
+
+    // Actionability Test
+    if (!this.hasActionableRecommendations(result)) {
+      issues.push('Recommendations are too vague and not immediately actionable');
+      qualityScore -= 15;
+    }
+
+    // Timeline Realism Check
+    if (!this.hasRealisticTimelines(result, input)) {
+      issues.push('Timelines do not reflect industry-specific development realities');
+      qualityScore -= 10;
+    }
+
+    return {
+      isValid: issues.length === 0,
+      issues,
+      qualityScore: Math.max(0, qualityScore)
+    };
+  }
+
+  private isGenericAnalysis(result: MarketMapperOutput, input: MarketMapperInput): boolean {
+    const genericPhrases = [
+      'strong market potential',
+      'growing market',
+      'conduct customer interviews',
+      'build an MVP',
+      'validate your idea',
+      'significant opportunity',
+      'competitive landscape',
+      'go-to-market strategy'
+    ];
+
+    const analysisText = JSON.stringify(result).toLowerCase();
+    const genericCount = genericPhrases.filter(phrase => analysisText.includes(phrase)).length;
+    
+    // If more than 3 generic phrases are used, it's likely generic
+    return genericCount > 3;
+  }
+
+  private hasIndustrySpecificInsights(result: MarketMapperOutput, input: MarketMapperInput): boolean {
+    const industry = input.industry || this.inferIndustry(input.businessIdea);
+    const template = INDUSTRY_TEMPLATES[industry.toLowerCase() as keyof typeof INDUSTRY_TEMPLATES] || INDUSTRY_TEMPLATES.default;
+    
+    const analysisText = JSON.stringify(result).toLowerCase();
+    
+    // Check if analysis mentions industry-specific factors
+    const industryFactors = [
+      ...template.specificAnalysis?.regulatoryFactors || [],
+      ...template.specificAnalysis?.marketDynamics || [],
+      ...template.specificAnalysis?.successMetrics || []
+    ];
+
+    const mentionedFactors = industryFactors.filter(factor => 
+      analysisText.includes(factor.replace(/_/g, ' '))
+    ).length;
+
+    // Should mention at least 2 industry-specific factors
+    return mentionedFactors >= 2;
+  }
+
+  private hasRealCompetitorData(result: MarketMapperOutput): boolean {
+    if (!result.competitorIntelligence || result.competitorIntelligence.length === 0) return false;
+
+    // Check if competitors have specific names (not generic descriptions)
+    const hasSpecificNames = result.competitorIntelligence.some((comp: any) => 
+      comp.name && 
+      comp.name.length > 3 && 
+      !comp.name.toLowerCase().includes('competitor') &&
+      !comp.name.toLowerCase().includes('company')
+    );
+
+    return hasSpecificNames;
+  }
+
+  private hasActionableRecommendations(result: MarketMapperOutput): boolean {
+    if (!result.recommendations || result.recommendations.length === 0) return false;
+
+    // Check if recommendations have specific actions and timelines
+    const actionableCount = result.recommendations.filter(rec => 
+      rec.action && 
+      rec.action.length > 20 && // Substantial detail
+      rec.timeline && // Has timeline
+      rec.resources && rec.resources.length > 0 // Has resource requirements
+    ).length;
+
+    return actionableCount >= Math.ceil(result.recommendations.length * 0.7); // 70% should be actionable
+  }
+
+  private hasRealisticTimelines(result: MarketMapperOutput, input: MarketMapperInput): boolean {
+    if (!result.recommendations) return true; // Skip if no recommendations
+
+    const industry = input.industry || this.inferIndustry(input.businessIdea);
+    
+    // Industry-specific minimum timeline expectations
+    const minimumTimelines = {
+      'healthcare': 12, // months - due to regulatory requirements
+      'fintech': 8, // months - due to compliance
+      'saas': 6, // months - for enterprise sales
+      'marketplace': 9, // months - for network effects
+      'ecommerce': 4, // months - for inventory and logistics
+      'default': 3 // months - general business
+    };
+
+    const minExpected = minimumTimelines[industry as keyof typeof minimumTimelines] || minimumTimelines.default;
+    
+    // Check if any timeline mentions unrealistically short periods for complex tasks
+    const hasRealisticTimelines = result.recommendations.every(rec => {
+      if (!rec.timeline) return true;
+      
+      const timelineText = rec.timeline.toLowerCase();
+      if (timelineText.includes('week') && (timelineText.includes('launch') || timelineText.includes('market'))) {
+        return false; // Unrealistic to launch to market in weeks for most industries
+      }
+      
+      return true;
+    });
+
+    return hasRealisticTimelines;
   }
 
   // Enhanced utility methods
